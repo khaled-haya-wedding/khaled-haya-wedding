@@ -388,6 +388,7 @@ main{padding-bottom:60px}
       <b id="bulkCount"></b><span class="grow"></span>
       <button type="button" class="btn sm dark" id="bulkSend">إرسال عبر واتساب</button>
       <button type="button" class="btn sm" id="bulkAll">تحديد الكل</button>
+      <button type="button" class="btn sm" id="bulkDelete" style="color:#8A1C2C;border-color:#8A1C2C">حذف</button>
       <button type="button" class="btn sm ghost" id="bulkClear">إلغاء</button>
     </div>
   </section>
@@ -657,14 +658,14 @@ const DB = {
 };
 
 const EMPTY = () => ({ settings: { ...DEFAULTS }, guests: [], nextId: 1, lastBackup: null, changesSinceBackup: 0,
-  replies: [], links: {}, ignored: {}, lastSync: null, openLinks: [], linkInfo: {}, session: null });
+  replies: [], links: {}, ignored: {}, lastSync: null, openLinks: [], linkInfo: {}, session: null, deletedTokens: {} });
 let S = EMPTY();
 let page = "home", filter = "all", query = "", oFilter = "all", oQuery = "", editing = null, sendKind = "invite", includeNotDue = false;
 const selected = new Set();
 
 function normalizeState() {
   S.replies = S.replies || []; S.links = S.links || {}; S.ignored = S.ignored || {};
-  S.openLinks = S.openLinks || []; S.linkInfo = S.linkInfo || {};
+  S.openLinks = S.openLinks || []; S.linkInfo = S.linkInfo || {}; S.deletedTokens = S.deletedTokens || {};
   if (!["app", "web"].includes(S.settings.wa_mode)) S.settings.wa_mode = "app";
   if (String(S.settings.msg_invite || "").startsWith("حضرة {full_name}،")) S.settings.msg_invite = S.settings.msg_invite.replace("حضرة {full_name}،", "حضرة {title} {full_name}،");
 }
@@ -825,7 +826,7 @@ function applyReplies(replies) {
   const taken = new Set(Object.values(S.links));
   let changed = 0, unmatched = 0;
   for (const r of replies) {
-    if (S.ignored[r.id]) continue;
+    if (S.ignored[r.id] || (r.token && S.deletedTokens[r.token])) continue;
     let g = null;
     if (r.token) {
       g = S.guests.find((x) => x.token === r.token);
@@ -1377,10 +1378,32 @@ $("#gSaveSend").onclick = async () => {
 $("#gX").onclick = () => $("#guestDlg").close();
 $("#gCopy").onclick = () => copyText($("#gLink").value);
 $("#gUnsend").onclick = async () => { editing.invited_at = null; await save(); $("#guestDlg").close(); toast("اعتُبرت الدعوة غير مرسلة"); };
+/* Deleting removes guests from this list and stops their replies from bringing them back on the next sync.
+   (Their reply rows stay in the Google Sheet.) */
+async function deleteGuests(list) {
+  const ids = new Set(list.map((g) => g.id));
+  for (const g of list) if (g.token) S.deletedTokens[g.token] = true;
+  for (const rid in S.links) if (ids.has(S.links[rid])) { S.ignored[rid] = true; delete S.links[rid]; }
+  S.guests = S.guests.filter((g) => !ids.has(g.id));
+  ids.forEach((id) => selected.delete(id));
+  if (S.session) {
+    const ses = S.session;
+    ses.i = ses.items.slice(0, ses.i).filter((it) => !ids.has(it.id)).length;
+    ses.items = ses.items.filter((it) => !ids.has(it.id));
+    if (!ses.items.length) S.session = null;
+  }
+  await save();
+}
 $("#gDelete").onclick = async () => {
   if (!confirm(`حذف ${editing.full_name}؟`)) return;
-  S.guests = S.guests.filter((g) => g !== editing); selected.delete(editing.id);
-  await save(); $("#guestDlg").close(); toast("تم حذف الضيف");
+  await deleteGuests([editing]); $("#guestDlg").close(); toast("تم حذف الضيف");
+};
+$("#bulkDelete").onclick = async () => {
+  const list = S.guests.filter((g) => selected.has(g.id));
+  if (!list.length) return;
+  const n = list.length, label = n === 1 ? `حذف ${list[0].full_name}؟` : `حذف ${n} ضيوف من القائمة؟`;
+  if (!confirm(label + "\nلا يمكن التراجع عن الحذف (احفظ نسخة احتياطية أولًا إن احتجت).")) return;
+  await deleteGuests(list); toast(n === 1 ? "تم حذف الضيف" : `تم حذف ${n} ضيوف`);
 };
 $("#addGuest").onclick = $("#addGuest2").onclick = () => openGuest(null);
 
