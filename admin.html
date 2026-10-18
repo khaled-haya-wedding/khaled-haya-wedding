@@ -1159,7 +1159,7 @@ function renderPreview() {
   const hasLink = msg.includes(INVITE_PAGE);
   $("#pvFor").textContent = `كما ستظهر لـ ${sample.full_name}`;
   const html = esc(msg).replace(/https?:\/\/[^\s<]+/g, (u) => `<a>${u}</a>`);
-  $("#pv").innerHTML = (hasLink ? `<div class="lp"><img src="${INVITE_PAGE}assets/og.jpg" alt="" onerror="this.style.visibility='hidden'"><div><b>دعوة زفاف ${esc(S.settings.couple)}</b><span class="ltr">${esc(INVITE_PAGE.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</span></div></div>` : "") +
+  $("#pv").innerHTML = (hasLink ? `<div class="lp"><img src="${INVITE_PAGE}envelope.jpg" alt="" onerror="this.style.visibility='hidden'"><div><b>دعوة زفاف ${esc(S.settings.couple)}</b><span class="ltr">${esc(INVITE_PAGE.replace(/^https?:\/\//, "").replace(/\/$/, ""))}</span></div></div>` : "") +
     `<div class="txt" dir="auto">${html}</div><div class="tm">${esc(new Date().toLocaleTimeString("ar-SA-u-nu-latn", { hour: "numeric", minute: "2-digit" }))}</div>`;
 }
 let tplTimer;
