@@ -304,7 +304,7 @@ dialog::backdrop{background:rgba(20,4,8,.6)}
   <form class="dlg" method="dialog" id="guestForm">
     <h2 id="gTitle" dir="auto">الضيف</h2>
     <label class="field"><span>الاسم الكامل</span><input name="full_name" required dir="auto"></label>
-    <label class="field"><span>رقم واتساب</span><input name="phone" dir="ltr"></label>
+    <label class="field"><span>رقم واتساب</span><input name="phone" dir="ltr" inputmode="tel" placeholder="055… أو ‎+970 59…"></label>
     <div class="field" id="gLinkWrap" hidden><span>رابط الدعوة</span>
       <div class="inline"><input id="gLink" readonly dir="ltr"><button class="btn" type="button" id="gCopy">نسخ</button></div>
     </div>
@@ -973,15 +973,34 @@ const HEAD = {
 const normH = (s) => String(s ?? "").trim().toLowerCase().replace(/[_\-]+/g, " ").replace(/\s+/g, " ");
 const cell = (v) => typeof v === "number" ? String(Math.round(v)) : String(v ?? "").trim();
 const clean = (v) => String(v ?? "").replace(/[ \t]+/g, " ").trim();
-const looksPhone = (v) => /^\+?[\d\s\-().]{7,}$/.test(cell(v));
+const looksPhone = (v) => /^\+?[\d\u0660-\u0669\u06F0-\u06F9\s\-().]{7,}$/.test(cell(v));
 
+/* Phone numbers: accepts local (055…, defaults to the country code in Settings),
+   international (+970…, 00972…), numbers that lost their + in Excel (212612…),
+   Arabic digits (٠٥٥…), and a stray 0 after the country code (+970 059…, +972 (0)54…). */
+const CC_LEN = { "966": 12, "970": 12, "972": 12, "212": 12, "20": 12, "971": 12, "962": 12,
+  "965": 11, "973": 11, "974": 11, "968": 11, "961": [10, 11], "963": 12, "964": 13, "90": 12,
+  "1": 11, "44": 12, "33": 11, "49": [11, 13], "216": 11, "213": 12, "218": 12, "249": 12, "967": 12 };
+const CODES = Object.keys(CC_LEN).sort((a, b) => b.length - a.length);
+const codeOf = (d) => CODES.find((c) => d.startsWith(c));
 function normalizePhone(input, cc = "966") {
-  let d = String(input ?? "").replace(/\D/g, "");
+  let raw = String(input ?? "").trim()
+    .replace(/[\u0660-\u0669]/g, (c) => c.charCodeAt(0) - 0x0660)
+    .replace(/[\u06F0-\u06F9]/g, (c) => c.charCodeAt(0) - 0x06F0);
+  cc = String(cc || "966").replace(/\D/g, "") || "966";
+  const intl = /^(\+|00)/.test(raw);
+  let d = raw.replace(/\D/g, "");
   if (!d) return null;
   if (d.startsWith("00")) d = d.slice(2);
-  else if (cc && !d.startsWith(cc)) {
-    if (d.startsWith("0")) d = cc + d.slice(1);
-    else if (d.length <= 10) d = cc + d;
+  else if (!intl) {
+    if (d.startsWith("0")) d = cc + d.slice(1);                 // 0551234567 → 966551234567
+    else if (!(codeOf(d) && d.length >= 11)) d = cc + d;        // 551234567  → 966551234567
+  }
+  const code = codeOf(d);
+  if (code && d[code.length] === "0") d = code + d.slice(code.length + 1);   // +970 0599… → 970599…
+  if (code) {
+    const ok = [].concat(CC_LEN[code]);
+    if (!ok.includes(d.length)) return null;
   }
   return d.length >= 8 && d.length <= 15 ? d : null;
 }
