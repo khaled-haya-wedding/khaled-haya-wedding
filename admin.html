@@ -1,0 +1,1358 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>خالد وهيا | إدارة الدعوات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Cairo:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500&family=Amiri:wght@400;700&family=Aref+Ruqaa&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  color-scheme:dark;
+  --paper:#4A1220; --ink:#FBEBD3; --muted:#D6BFAB; --line:rgba(217,178,106,.3);
+  --gold:#D9B97E; --accent:#E8C98E; --accent-ink:#4A1220;
+  --card:rgba(40,8,14,.34); --field:rgba(0,0,0,.22);
+  --att:#9DD3AE; --att-soft:rgba(157,211,174,.14);
+  --blush:#F2A0B2; --blush-soft:rgba(242,160,178,.14);
+  --ochre:#E8C98E; --ochre-soft:rgba(232,201,142,.14);
+  --mist:#A58990; --mist-soft:rgba(255,241,218,.08);
+  --ui:"Cairo","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --display:"Bodoni Moda","Amiri",Georgia,serif;
+  --script:"Aref Ruqaa","Amiri",serif;
+  --silk:linear-gradient(125deg,#4A1220 0%,#7E2636 13%,#A84456 21%,#7E2636 29%,#5A1826 42%,#7E2636 56%,#A84456 64%,#7E2636 72%,#4A1220 100%);
+}
+*{box-sizing:border-box}
+html{background:var(--paper)}
+html,body{margin:0;color:var(--ink);font:15px/1.5 var(--ui)}
+body{min-height:100vh;position:relative}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:var(--silk)}
+button,input,select,textarea{font:inherit;color:inherit}
+select option{background:#4A1220;color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1120px;margin:0 auto;padding:32px 20px 80px}
+[hidden]{display:none!important}
+
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px}
+h1{font:400 clamp(40px,7vw,66px)/1.45 var(--script);margin:0;color:var(--ink);text-shadow:0 2px 14px rgba(20,4,8,.45)}
+.orn{display:flex;align-items:center;gap:10px;margin:0 0 6px}
+.orn i{display:block;width:70px;height:1px;background:linear-gradient(90deg,var(--gold),transparent)}
+.orn i:first-child{background:linear-gradient(270deg,var(--gold),transparent)}
+.orn b{width:6px;height:6px;border:1px solid var(--gold);transform:rotate(45deg)}
+.when{color:var(--muted);margin-top:4px}
+.when a{color:var(--accent)}
+.when b{color:var(--accent);font-weight:600}
+.headbtns{display:flex;gap:8px;flex-wrap:wrap}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;cursor:pointer}
+.iconbtn:hover:not(:disabled){border-color:var(--accent)}
+.iconbtn:disabled{opacity:.6;cursor:default}
+.iconbtn small{opacity:.7;margin-inline-start:8px}
+
+.tabs{display:flex;gap:4px;margin:0 0 20px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:10px 16px;cursor:pointer;color:var(--muted);font:500 15px var(--ui)}
+.tab small{display:inline-block;min-width:22px;margin-inline-start:8px;padding:0 7px;border-radius:999px;background:var(--mist-soft);font-size:12px;text-align:center}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+.tab.on small{background:var(--ochre-soft);color:var(--accent)}
+
+.rsvp{margin-bottom:24px}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--mist-soft);box-shadow:inset 0 0 0 1px var(--line)}
+.bar span{transition:flex-grow .4s ease}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px;align-items:center}
+.chip{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 15px;cursor:pointer}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block;align-self:center}
+.chip strong{font:600 18px/1 var(--ui)}
+.chip.on{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.door-stat{margin-inline-start:8px;color:var(--att);font-size:14px}
+
+.panel{background:var(--card);border:1px solid rgba(232,201,142,.5);border-radius:14px;padding:18px 18px 6px;margin-bottom:22px}
+.panel h2{font:400 22px/1.3 var(--display);color:var(--accent);margin:0 0 4px}
+.panel .hint{margin:0 0 10px}
+.match{display:grid;grid-template-columns:1fr auto;gap:10px 14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.match .who{min-width:0}
+.match .msg{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:460px;margin-top:2px}
+.match .act{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.match select{border:1px solid var(--line);background:var(--field);border-radius:10px;padding:8px 10px;max-width:230px}
+
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 14px;cursor:pointer;white-space:nowrap}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover:not(:disabled){filter:brightness(1.06)}
+.btn.danger{color:var(--blush)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn small{opacity:.75;margin-inline-start:8px;display:inline-block;direction:ltr}
+.search{flex:1;min-width:180px;border:1px solid var(--line);background:var(--field);border-radius:10px;padding:9px 12px}
+.search::placeholder{color:rgba(251,235,211,.5)}
+.spacer{flex:1}
+.summary{color:var(--muted);font-size:14px}
+
+.tablewrap{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:960px}
+th{text-align:start;font-weight:500;color:var(--gold);font-size:13px;padding:12px 16px;border-bottom:1px solid var(--line)}
+td{padding:12px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:rgba(255,241,218,.05)}
+tbody tr.unused{opacity:.75}
+.name{font-weight:500}
+.sub{color:var(--muted);font-size:13px;direction:ltr;unicode-bidi:isolate}
+.num{font:600 15px var(--display);color:var(--gold)}
+.alias{color:var(--muted);font-size:12px}
+.tk{font:600 15px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em}
+.entered{color:var(--att);font-size:12px}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:500}
+.p-attending{background:var(--att-soft);color:var(--att)}
+.p-declined{background:var(--blush-soft);color:var(--blush)}
+.p-waiting{background:var(--ochre-soft);color:var(--ochre)}
+.p-notsent{background:var(--mist-soft);color:var(--muted)}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:0 8px;font-size:11px;color:var(--gold);margin-inline-start:6px;vertical-align:middle;font-weight:400}
+.reply{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.empty{padding:56px 20px;text-align:center;color:var(--muted)}
+.empty p{margin:0 0 16px}
+
+dialog{border:1px solid var(--line);border-radius:16px;padding:0;width:min(560px,94vw);max-height:90vh;color:var(--ink);
+  background:linear-gradient(160deg,#5E1A2B,#4A1220);box-shadow:0 24px 70px rgba(10,2,4,.6)}
+dialog.wide{width:min(720px,96vw)}
+dialog::backdrop{background:rgba(20,4,8,.6)}
+.dlg{padding:24px}
+.dlg h2{font:400 28px/1.3 var(--display);margin:0 0 18px;color:var(--accent)}
+.dlg h3{font:500 15px/1.3 var(--ui);color:var(--accent);margin:22px 0 12px;padding-top:18px;border-top:1px solid var(--line)}
+.dlg h3:first-of-type{margin-top:0;padding-top:0;border-top:0}
+.field{display:block;margin-bottom:14px}
+.field>span{display:block;font-size:13px;color:var(--gold);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:var(--field)}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px rgba(232,201,142,.18)}
+.field textarea{min-height:90px;resize:vertical}
+.field input::placeholder,.field textarea::placeholder{color:rgba(251,235,211,.45)}
+.inline{display:flex;gap:6px}
+.inline input{flex:1;min-width:0}
+.hint{font-size:13px;color:var(--muted);margin:-8px 0 14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:20px}
+.foot .left{margin-inline-end:auto}
+.stats{font:500 18px/1.4 var(--display);color:var(--accent);margin:0 0 16px}
+.pic{max-width:220px;border:1px solid var(--line);border-radius:10px;margin:0 0 10px}
+.skipped{max-height:240px;overflow:auto;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--field)}
+.wishes{max-height:60vh;overflow:auto}
+.wishes .w{padding:12px 0;border-top:1px solid var(--line)}
+.wishes .w:first-child{border-top:0}
+.wishes .w p{margin:6px 0 0;white-space:pre-wrap;line-height:1.8}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2A0A12;border:1px solid var(--line);color:var(--ink);padding:10px 18px;border-radius:999px;font-size:14px;max-width:90vw;box-shadow:0 10px 30px rgba(10,2,4,.5);z-index:10}
+.queue-name{font:400 32px/1.5 var(--script);margin:0}
+.queue-msg{white-space:pre-wrap;background:var(--field);border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;max-height:200px;overflow:auto;margin:14px 0}
+.queue-count{color:var(--gold);font-size:14px;margin-bottom:6px}
+.btn.big{padding:14px 22px;font-size:16px}
+.mini{border:1px solid var(--line);background:transparent;border-radius:6px;padding:2px 9px;cursor:pointer;font-size:13px;margin-inline-start:4px}
+.mini:hover{border-color:var(--accent);color:var(--accent)}
+.mini.y:hover{border-color:var(--att);color:var(--att)} .mini.n:hover{border-color:var(--blush);color:var(--blush)}
+.banner{background:var(--ochre-soft);border:1px solid rgba(232,201,142,.4);border-radius:12px;padding:10px 14px;margin-bottom:16px;font-size:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+@media (max-width:760px){
+  .headbtns,.actions{width:100%}
+  .chip{flex:1 1 155px;justify-content:center}
+  .tabs{overflow-x:auto}
+  .wrap{padding-inline:14px}
+  .btn{white-space:normal}
+
+  header{flex-direction:column}
+  .row{grid-template-columns:1fr}
+  .match{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Clear multi-section administration */
+.mainnav{display:flex;gap:8px;padding:8px;margin:0 0 24px;background:rgba(30,5,13,.32);border:1px solid var(--line);border-radius:16px;flex-wrap:wrap}
+.navitem{background:transparent;border:1px solid transparent;border-radius:11px;color:var(--muted);font:600 14px var(--ui);padding:12px 15px;cursor:pointer;display:inline-flex;align-items:center;gap:9px;justify-content:center;transition:.15s}
+.navitem:hover{color:var(--ink);background:rgba(255,241,218,.06)}.navitem.active{color:var(--accent-ink);background:var(--accent)}
+.navitem small{border-radius:20px;background:rgba(255,255,255,.12);padding:1px 8px;font:600 12px var(--ui);direction:ltr}
+.navitem.active small{background:rgba(74,18,32,.1)}.navico{font-size:18px;line-height:1}
+.page-section{animation:sectionIn .16s ease}@keyframes sectionIn{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.secthead{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 20px}.secthead h2{font:600 clamp(23px,3vw,31px)/1.35 var(--ui);color:var(--ink);margin:4px 0 7px}
+.eyebrow{font-weight:600;font-size:12px;color:var(--accent);letter-spacing:.05em;margin:0}.subtle{font-size:14px;color:var(--muted);margin:0}
+.metricgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.metriccard{min-width:0;text-align:right;cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 17px;color:var(--ink)}
+.metriccard:hover{border-color:var(--accent);background:rgba(45,8,18,.62)}.metriccard .mt{display:block;color:var(--muted);font-size:13px;margin-bottom:10px}.metriccard .mv{display:block;font:600 32px/1.1 var(--ui);direction:ltr;text-align:right;font-variant-numeric:tabular-nums}.metriccard .md{display:block;color:var(--gold);font-size:12px;margin-top:10px}
+.overviewgrid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}.softpanel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px}.softpanel h3{font-size:17px;margin:0 0 18px;color:var(--accent)}
+.metricbar{height:13px;display:flex;border-radius:8px;background:var(--mist-soft);overflow:hidden}.metricbar span{min-width:0}.summaryline{display:flex;flex-wrap:wrap;gap:12px 18px;margin-top:17px;font-size:13px;color:var(--muted)}.summaryline span{white-space:nowrap}.summaryline b{color:var(--ink);margin-inline-start:5px}
+.quicklinks{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quicklinks .btn{white-space:normal;text-align:center;min-height:48px}
+.sendtiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.sendtile{background:var(--card);border:1px solid var(--line);padding:20px;border-radius:16px}.sendtile h3{color:var(--accent);font-size:17px;margin:0 0 9px}.sendtile p{color:var(--muted);font-size:13px;min-height:55px;margin:0 0 12px}.sendtile .btn{width:100%;min-height:48px;white-space:normal}
+.notice{background:var(--ochre-soft);border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:17px;font-size:13px;color:var(--muted)}
+#workPanel>.rsvp{margin-bottom:16px}#workPanel .actions{margin-bottom:12px}#workPanel .tablewrap{margin-top:10px}
+#workPanel .chip{align-items:center;padding:8px 12px;gap:9px}#workPanel .chip strong{font:600 17px/1.2 var(--ui);direction:ltr}#workPanel .chip i{flex-shrink:0}
+#workPanel .tablewrap{scrollbar-color:var(--gold) transparent}
+@media(max-width:900px){.metricgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.overviewgrid{grid-template-columns:1fr}.sendtiles{grid-template-columns:1fr}}
+@media(max-width:600px){.mainnav{display:grid;grid-template-columns:1fr 1fr;padding:6px}.navitem{font-size:12px;padding:11px 7px;gap:5px}.navico{font-size:14px}.metricgrid{gap:9px}.metriccard{padding:13px}.metriccard .mv{font-size:27px}.quicklinks{grid-template-columns:1fr}.secthead{align-items:flex-start;flex-direction:column}.softpanel{padding:17px}}
+
+  .row-send{white-space:nowrap;padding:7px 13px;border-color:var(--gold);color:var(--accent);font-weight:600}
+  .row-send:disabled{opacity:.4;cursor:not-allowed}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">
+  <header>
+    <div>
+      <h1 id="couple" dir="auto"></h1>
+      <div class="orn" aria-hidden="true"><i></i><b></b><i></i></div>
+      <div class="when" id="when"></div>
+    </div>
+    <div class="headbtns">
+      <button class="iconbtn" id="syncBtn">مزامنة الردود</button>
+      <button class="iconbtn" id="wishBtn">التهاني</button>
+      <button class="iconbtn" id="backupBtn">نسخة احتياطية</button>
+      <button class="iconbtn" id="openSettings">الإعدادات</button>
+    </div>
+  </header>
+
+  <div class="banner" id="backupBanner" hidden>
+    <span id="backupText"></span>
+    <button class="btn" id="backupNow" style="padding:4px 12px">Back up now</button>
+  </div>
+
+  <nav class="mainnav" aria-label="أقسام لوحة الإدارة">
+    <button type="button" class="navitem active" data-page="overview"><span class="navico">◈</span> نظرة عامة</button>
+    <button type="button" class="navitem" data-page="guests"><span class="navico">♙</span> قائمة الضيوف <small id="tMine">0</small></button>
+    <button type="button" class="navitem" data-page="links"><span class="navico">↗</span> الروابط المفتوحة <small id="tOpen">0</small></button>
+    <button type="button" class="navitem" data-page="sending"><span class="navico">✉</span> الدعوات والتذكيرات</button>
+  </nav>
+  <section id="overviewPanel" class="page-section">
+    <div class="secthead"><div><p class="eyebrow">لوحة المتابعة</p><h2>نظرة عامة على الدعوات</h2><p class="subtle">ملخص حالة الضيوف وروابط الدعوات والدخول.</p></div><button type="button" class="btn" id="overviewSync">↻ تحديث الردود</button></div>
+    <div class="metricgrid" id="metricGrid"></div>
+    <div class="overviewgrid">
+      <article class="softpanel"><h3>حالة تأكيد الحضور</h3><div class="metricbar" id="overviewBar"></div><div class="summaryline" id="overviewSummary"></div></article>
+      <article class="softpanel"><h3>إجراءات سريعة</h3><div class="quicklinks"><button type="button" class="btn primary" data-jump="guests">عرض الضيوف</button><button type="button" class="btn" data-jump="links">إدارة الروابط</button><button type="button" class="btn" data-jump="sending">إرسال الدعوات والتذكيرات</button></div></article>
+    </div>
+  </section>
+  <section id="sendingPanel" class="page-section" hidden>
+    <div class="secthead"><div><p class="eyebrow">التواصل مع الضيوف</p><h2>الدعوات والتذكيرات</h2><p class="subtle">اختر الإجراء المطلوب، ثم راجع رسالة كل ضيف في قائمة الإرسال.</p></div></div>
+    <div class="sendtiles" id="sendTiles"></div>
+    <p class="notice">تنبيه: فتح محادثة واتساب لا يؤكد إرسال الرسالة. تأكد من الضغط على إرسال داخل واتساب.</p>
+  </section>
+  <section id="workPanel" class="page-section" hidden>
+    <div class="secthead"><div><p class="eyebrow" id="workEyebrow">إدارة البيانات</p><h2 id="workTitle">قائمة الضيوف</h2><p class="subtle" id="workDesc">ابحث عن الضيف، راجع حالة رده، وافتح سجله للتعديل.</p></div></div>
+
+  <section class="rsvp">
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <section class="panel" id="matchPanel" hidden>
+    <h2>ردود تحتاج إلى مطابقة</h2>
+    <p class="hint">هذه الردود لم تتم مطابقتها مع الضيوف. اختر الضيف الصحيح واضغط ربط، أو تجاهل الرد التجريبي.</p>
+    <div id="matchList"></div>
+  </section>
+
+  <div class="actions" id="actMine">
+    <button class="btn" id="importBtn">استيراد إكسل</button>
+    <input type="file" id="file" accept=".xlsx,.xls,.csv" hidden>
+    <button class="btn" id="linksBtn">إنشاء روابط شخصية</button>
+    <button class="btn primary" id="sendInvites">إرسال الدعوات</button>
+    <button class="btn" id="sendRsvpRem">تذكير غير المستجيبين</button>
+    <button class="btn" id="sendEventRem">تذكير المؤكدين</button>
+    <span class="spacer"></span>
+    <button class="btn" data-export>تصدير إكسل</button>
+  </div>
+
+  <div class="actions" id="actOpen" hidden>
+    <button class="btn primary" id="openBtn">إنشاء روابط مفتوحة</button>
+    <button class="btn" id="openCopyTop">نسخ الروابط غير المستخدمة</button>
+    <span class="summary" id="openSummary"></span>
+    <span class="spacer"></span>
+    <button class="btn" id="openExportUnusedTop">تنزيل غير المستخدمة</button>
+    <button class="btn" id="openExportAllTop">تنزيل جميع الروابط مع الحالة</button>
+  </div>
+
+  <div class="actions"><input class="search" id="search" type="search" placeholder="ابحث بالاسم أو الجوال أو رقم التذكرة"></div>
+
+  <div class="tablewrap">
+    <table>
+      <thead id="thead"></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="emptyMine" hidden>
+      <p>أضف قائمة ضيوفك للبدء، باستخدام ملف إكسل يحتوي على الاسم ورقم الجوال.</p>
+      <button class="btn primary" id="importBtn2">استيراد إكسل</button>
+    </div>
+    <div class="empty" id="emptyOpen" hidden>
+      <p>لا توجد روابط مفتوحة بعد. أنشئ روابط وشارك رابطًا مع كل شخص لتظهر حالة استخدامه هنا.</p>
+      <button class="btn primary" id="openBtn2">إنشاء روابط مفتوحة</button>
+    </div>
+  </div>
+  </section>
+</main>
+
+<!-- Sending queue -->
+<dialog id="queueDlg">
+  <div class="dlg">
+    <div class="queue-count" id="qCount"></div>
+    <p class="queue-name" id="qName" dir="auto"></p>
+    <div class="sub" id="qPhone"></div>
+    <div class="queue-msg" id="qMsg" dir="auto"></div>
+    <p class="hint" id="qHint" style="margin:0"></p>
+    <div class="foot">
+      <button class="btn left" type="button" id="qStop">إيقاف</button>
+      <button class="btn" type="button" id="qSkip">تخطي</button>
+      <button class="btn" type="button" id="qCopy" hidden>نسخ صورة الدعوة</button>
+      <button class="btn primary big" type="button" id="qOpen">١. فتح واتساب</button>
+      <button class="btn primary" type="button" id="qConfirm" disabled>٣. تم الإرسال — التالي</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Guest editor -->
+<dialog id="guestDlg">
+  <form class="dlg" method="dialog" id="guestForm">
+    <h2 id="gTitle" dir="auto">الضيف</h2>
+    <label class="field"><span>الاسم الكامل</span><input name="full_name" required dir="auto"></label>
+    <label class="field"><span>رقم واتساب</span><input name="phone" dir="ltr"></label>
+    <div class="field" id="gLinkWrap" hidden><span>رابط الدعوة</span>
+      <div class="inline"><input id="gLink" readonly dir="ltr"><button class="btn" type="button" id="gCopy">نسخ</button></div>
+    </div>
+    <div class="row">
+      <label class="field"><span>تأكيد الحضور</span>
+        <select name="status">
+          <option value="pending">لم يرد بعد</option>
+          <option value="attending">سيحضر</option>
+          <option value="declined">اعتذر عن الحضور</option>
+        </select>
+      </label>
+      <label class="field"><span>ملاحظات</span><input name="note" dir="auto" placeholder="مثال: زميل العريس"></label>
+    </div>
+    <div class="field" id="gMsgWrap" hidden><span>رسالة التهنئة</span><div class="queue-msg" id="gMsg" dir="auto" style="margin:0"></div></div>
+    <p class="hint" id="gMeta"></p>
+    <div class="foot" style="justify-content:flex-start;margin-top:0">
+      <button class="btn" type="button" id="gSend">إرسال الدعوة</button>
+      <button class="btn" type="button" id="gUnsend" hidden>تحديد كغير مرسلة</button>
+    </div>
+    <div class="foot">
+      <button class="btn danger left" type="button" id="gDelete">حذف الضيف</button>
+      <button class="btn" type="button" id="gCancel">إلغاء</button>
+      <button class="btn primary" type="submit">حفظ</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Create open links -->
+<dialog id="openDlg">
+  <div class="dlg">
+    <h2>إنشاء روابط مفتوحة</h2>
+    <p class="hint" style="margin-top:-8px">Links that aren't tied to a name. Send one link to each person: they type their name, and after they register the link locks to them and they get their entry ticket. An Excel file with the new links downloads, and the links appear in the "الروابط المفتوحة" tab so you can see who used each one.</p>
+    <p class="stats" id="openStats"></p>
+    <div class="row">
+      <label class="field"><span>عدد الروابط الجديدة</span><input type="number" id="openCount" min="1" max="500" value="50"></label>
+      <div class="field"><span>&nbsp;</span><button class="btn primary" type="button" id="openGen" style="width:100%">إنشاء وتنزيل إكسل</button></div>
+    </div>
+    <div class="foot"><button class="btn" type="button" onclick="this.closest('dialog').close()">إغلاق</button></div>
+  </div>
+</dialog>
+
+<!-- Settings -->
+<dialog id="setDlg" class="wide">
+  <form class="dlg" id="setForm">
+    <h2>الإعدادات</h2>
+
+    <h3>الزفاف</h3>
+    <label class="field"><span>العروسان</span><input name="couple" dir="auto"></label>
+    <div class="row">
+      <label class="field"><span>التاريخ والوقت</span><input type="datetime-local" name="wedding_date"></label>
+      <label class="field"><span>المكان</span><input name="venue" dir="auto"></label>
+    </div>
+    <div class="row">
+      <label class="field"><span>رابط الموقع على خرائط Google</span><input name="map_url" dir="ltr"></label>
+      <label class="field"><span>مفتاح الدولة</span><input name="country_code" placeholder="966"></label>
+    </div>
+
+    <h3>جدول Google Sheets</h3>
+    <p class="hint" style="margin-top:0">أدخل رابط تطبيق Google Apps Script الذي ينتهي بـ /exec ومفتاح الإدارة المحدد في Code.gs.</p>
+    <label class="field"><span>رابط التطبيق</span><input name="sheet_url" dir="ltr" placeholder="https://script.google.com/macros/s/…/exec"></label>
+    <label class="field"><span>مفتاح الإدارة</span><input name="sheet_key" dir="ltr" type="password" autocomplete="off"></label>
+    <div class="foot" style="justify-content:flex-start;margin-top:0">
+      <button class="btn" type="button" id="unignoreBtn" hidden>إظهار الردود المتجاهلة مجددًا</button>
+    </div>
+
+    <h3>صورة الدعوة</h3>
+    <p class="hint" style="margin-top:0">ارفع صورة الدعوة. عند فتح واتساب يمكن نسخها ولصقها في المحادثة (Ctrl+V أو Cmd+V).</p>
+    <img class="pic" id="picPreview" alt="" hidden>
+    <div class="foot" style="justify-content:flex-start;margin-top:0">
+      <input type="file" id="picFile" accept="image/png,image/jpeg,image/webp" hidden>
+      <button class="btn" type="button" id="picPick">اختيار صورة</button>
+      <button class="btn" type="button" id="picRemove" hidden>إزالة الصورة</button>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <label class="field"><span>عند فتح واتساب</span>
+        <select name="attach_mode">
+          <option value="picture">نسخ صورة الدعوة</option>
+          <option value="none">عدم نسخ أي شيء</option>
+        </select>
+      </label>
+      <label class="field"><span>فتح واتساب بواسطة</span>
+        <select name="wa_mode"><option value="app">تطبيق واتساب</option><option value="web">واتساب ويب</option></select>
+      </label>
+    </div>
+
+    <h3>رسائل واتساب</h3>
+    <p class="hint" style="margin-top:0">You can use {first_name}, {full_name}, {couple}, {date}, {venue}, {map} and {link} (the guest's personal link; added at the end automatically if you leave it out).</p>
+    <label class="field"><span>الدعوة</span><textarea name="msg_invite" rows="8" dir="auto"></textarea></label>
+    <label class="field"><span>تذكير غير المستجيبين</span><textarea name="msg_rsvp_reminder" rows="4" dir="auto"></textarea></label>
+    <label class="field"><span>تذكير المؤكدين قبل الزفاف</span><textarea name="msg_event_reminder" rows="4" dir="auto"></textarea></label>
+    <label class="field"><span>إرسال التذكير بعد (أيام)</span><input type="number" min="0" name="rsvp_reminder_days"></label>
+
+    <h3>بياناتك</h3>
+    <p class="hint" style="margin-top:0">Your guest list is saved in this browser on this computer only (replies, links and tickets stay safe in the Google Sheet). Use Back up regularly, and Restore to move to another computer or browser.</p>
+    <div class="foot" style="justify-content:flex-start;margin-top:0">
+      <button class="btn" type="button" id="restoreBtn">استعادة نسخة احتياطية</button>
+      <input type="file" id="restoreFile" accept=".json" hidden>
+      <button class="btn danger" type="button" id="resetBtn">حذف جميع البيانات</button>
+    </div>
+
+    <div class="foot">
+      <button class="btn" type="button" id="setCancel">إلغاء</button>
+      <button class="btn primary" type="submit">حفظ الإعدادات</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="wishDlg">
+  <div class="dlg">
+    <h2>التهاني</h2>
+    <p class="hint" id="wishCount" style="margin-top:-8px"></p>
+    <div class="wishes" id="wishList"></div>
+    <div class="foot"><button class="btn primary" type="button" onclick="this.closest('dialog').close()">تم</button></div>
+  </div>
+</dialog>
+
+<dialog id="infoDlg">
+  <div class="dlg">
+    <h2 id="infoTitle"></h2>
+    <p id="infoText"></p>
+    <div class="skipped" id="infoList"></div>
+    <div class="foot"><button class="btn primary" type="button" onclick="this.closest('dialog').close()">تم</button></div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const now = () => new Date().toISOString();
+const fmt = (iso) => new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+const hhmm = (iso) => new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+// Formats the wedding's wall-clock time as entered, regardless of the viewer's time zone
+function formatDate(s, lang, withTime = true) {
+  const m = String(s.wedding_date || "").match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+  if (!m) return "";
+  const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  const opts = { weekday: "long", day: "numeric", month: "long", year: "numeric" };
+  if (withTime) Object.assign(opts, { hour: "numeric", minute: "2-digit" });
+  return d.toLocaleString(lang === "ar" ? "ar-SA-u-ca-gregory-nu-latn" : "en-GB", opts);
+}
+function fill(tpl, g, s, extra = {}) {
+  return String(tpl || "")
+    .replaceAll("{first_name}", g.first_name || g.full_name || "")
+    .replaceAll("{last_name}", g.last_name || "")
+    .replaceAll("{full_name}", g.full_name || "")
+    .replaceAll("{couple}", s.couple || "")
+    .replaceAll("{date}", formatDate(s, "ar"))
+    .replaceAll("{venue}", s.venue || "")
+    .replaceAll("{map}", s.map_url || "")
+    .replaceAll("{link}", extra.link || "");
+}
+function loadImage(src) {
+  return new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+}
+
+/* Name comparison that ignores Arabic spelling variations (hamza, taa marbuta, tashkeel, spacing) */
+function normName(s) {
+  return String(s || "").normalize("NFKC")
+    .replace(/[\u064B-\u0652\u0670\u0640]/g, "")
+    .replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/ؤ/g, "و").replace(/ئ/g, "ي")
+    .toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+}
+
+const DEFAULTS = {
+  couple: "خالد و هيا", wedding_date: "2026-11-21T19:00",
+  venue: "قاعة ديفا · دار المدرعات، القاهرة", map_url: "https://maps.app.goo.gl/XjyYCPs5rBogEhmi7",
+  country_code: "966", sheet_url: "https://script.google.com/macros/s/AKfycbwMaIIF5brWXhNc0rbS3d_Dtu1M-KZD6gzm6tMaNaMKcWDBksgQI-c91pvKnmy-pGd_/exec", sheet_key: "",
+  attach_mode: "picture", wa_mode: "app", rsvp_reminder_days: "7",
+  msg_invite: "حضرة {full_name}،\n\nيتشرّف السيد جهاد السوافيري والسيد أيمن السوسي بدعوتكم لحضور حفل زفاف المهندس خالد والآنسة هيا، وذلك يوم {date} في {venue}.\n\nهذه دعوتكم الشخصية، افتحوها وأكّدوا حضوركم لتحصلوا على تذكرة الدخول:\n{link}\n\nالدعوة شخصية لكم فقط.",
+  msg_rsvp_reminder: "مرحبًا {first_name}، تذكير لطيف بتأكيد حضوركم حفل زفاف خالد وهيا يوم {date}، من خلال رابط دعوتكم:\n{link}",
+  msg_event_reminder: "مرحبًا {first_name}، بانتظاركم يوم {date} في {venue} 🤍\nلا تنسوا تذكرة الدخول في رابط دعوتكم.\nالموقع: {map}",
+};
+
+/* ---------- Storage (IndexedDB, in this browser only) ---------- */
+const DB = {
+  db: null,
+  async open() {
+    this.db = await new Promise((res, rej) => {
+      const r = indexedDB.open("wedding-rsvp", 1);
+      r.onupgradeneeded = () => r.result.createObjectStore("kv");
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+  },
+  tx(mode, fn) {
+    return new Promise((res, rej) => {
+      const t = this.db.transaction("kv", mode), store = t.objectStore("kv"), req = fn(store);
+      t.oncomplete = () => res(req && req.result); t.onerror = () => rej(t.error);
+    });
+  },
+  get(k) { return this.tx("readonly", (s) => s.get(k)); },
+  set(k, v) { return this.tx("readwrite", (s) => s.put(v, k)); },
+  del(k) { return this.tx("readwrite", (s) => s.delete(k)); },
+};
+
+const EMPTY = () => ({ settings: { ...DEFAULTS }, guests: [], nextId: 1, lastBackup: null, changesSinceBackup: 0,
+  replies: [], links: {}, ignored: {}, lastSync: null, openLinks: [], linkInfo: {} });
+let S = EMPTY();
+let picBlob = null, picPng = null;
+let view = "mine", filter = "all", query = "", editing = null;
+
+function normalizeState() {
+  S.replies = S.replies || []; S.links = S.links || {}; S.ignored = S.ignored || {};
+  S.openLinks = S.openLinks || []; S.linkInfo = S.linkInfo || {};
+  if (S.settings.attach_mode !== "none") S.settings.attach_mode = "picture";
+}
+async function toPng(blob) {
+  if (!blob) return null;
+  if (blob.type === "image/png") return blob;
+  const img = await loadImage(URL.createObjectURL(blob)); if (!img) return null;
+  const c = document.createElement("canvas"); c.width = img.naturalWidth; c.height = img.naturalHeight;
+  c.getContext("2d").drawImage(img, 0, 0);
+  return new Promise((r) => c.toBlob(r, "image/png"));
+}
+async function setPicture(blob) {
+  picBlob = blob || null;
+  picPng = await toPng(picBlob);
+}
+async function save() { S.changesSinceBackup++; await DB.set("state", S); render(); }
+async function loadAll() {
+  await DB.open();
+  const st = await DB.get("state");
+  if (st) S = { ...EMPTY(), ...st, settings: { ...DEFAULTS, ...st.settings } };
+  normalizeState();
+  await setPicture((await DB.get("bg")) || null);
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  render();
+  syncReplies(true);
+}
+
+/* ---------- Status helpers ---------- */
+const STATUS = {
+  attending: { label: "سيحضر", color: "var(--att)", cls: "p-attending" },
+  declined:  { label: "اعتذر عن الحضور", color: "var(--blush)", cls: "p-declined" },
+  waiting:   { label: "لم يرد بعد", color: "var(--ochre)", cls: "p-waiting" },
+  notsent:   { label: "لم تُرسل الدعوة", color: "var(--mist)", cls: "p-notsent" },
+};
+const bucket = (g) => g.status === "attending" ? "attending" : g.status === "declined" ? "declined" : g.invited_at ? "waiting" : "notsent";
+
+function eligible(kind) {
+  const G = S.guests.filter((g) => g.phone && !g.open);
+  if (kind === "invite") return G.filter((g) => !g.invited_at);
+  if (kind === "rsvp_reminder") {
+    const cutoff = Date.now() - Number(S.settings.rsvp_reminder_days || 0) * 864e5;
+    return G.filter((g) => g.status === "pending" && g.invited_at && !g.rsvp_reminder_at && Date.parse(g.invited_at) <= cutoff);
+  }
+  if (kind === "event_reminder") return G.filter((g) => g.status === "attending" && !g.event_reminder_at);
+  return [];
+}
+function setStatus(g, status) {
+  g.status = status;
+  g.responded_at = status === "pending" ? null : now();
+}
+
+/* ---------- Google Sheet: connection, links, replies ---------- */
+let syncing = false;
+const sheetReady = () => !!(S.settings.sheet_url && S.settings.sheet_key);
+const linkBase = () => String(S.settings.sheet_url || "").trim().split("?")[0];
+/* Guest links point to the invitation on GitHub Pages */
+const INVITE_PAGE = "https://khaled-haya-wedding.github.io/";
+const linkFor = (token) => `${INVITE_PAGE}?t=${token}`;
+
+async function api(body) {
+  if (!sheetReady()) throw new Error("Connect the Google Sheet in Settings first");
+  let data;
+  try {
+    const r = await fetch(linkBase(), { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ ...body, key: S.settings.sheet_key.trim() }) });
+    data = await r.json();
+  } catch { throw new Error("Couldn't reach the Sheet. Check the link ends in /exec and that you deployed a new version."); }
+  if (!data.ok) throw new Error(data.error === "bad key" ? "The admin key doesn't match the one in Code.gs" : (data.error || "The Sheet refused the request"));
+  return data;
+}
+
+async function ensureLinks(guests) {
+  const need = guests.filter((g) => !g.token && !g.open);
+  if (!need.length) return 0;
+  let made = 0;
+  for (let i = 0; i < need.length; i += 300) {
+    const chunk = need.slice(i, i + 300);
+    const data = await api({ action: "createLinks", items: chunk.map((g) => ({ ref: g.id, name: g.full_name, phone: g.phone })) });
+    for (const l of data.links || []) {
+      const g = S.guests.find((x) => x.id === l.ref);
+      if (g && !g.token) { g.token = l.token; made++; }
+    }
+  }
+  await save();
+  return made;
+}
+
+async function copyText(t, label = "تم نسخ الرابط") {
+  try { await navigator.clipboard.writeText(t); toast(label); }
+  catch { window.prompt("Copy this:", t); }
+}
+
+function findGuest(reply, taken) {
+  const n = normName(reply.name); if (!n) return null;
+  const pool = S.guests.filter((g) => !taken.has(g.id) && !g.open);
+  let hit = pool.filter((g) => normName(g.full_name) === n);
+  if (hit.length === 1) return hit[0];
+  if (hit.length > 1) return null;
+  const rt = n.split(" ");
+  if (rt.length < 2) return null;
+  hit = pool.filter((g) => {
+    const gt = normName(g.full_name).split(" ");
+    return rt.every((t) => gt.includes(t)) || (gt.length >= 2 && gt.every((t) => rt.includes(t)));
+  });
+  return hit.length === 1 ? hit[0] : null;
+}
+
+// Applies a reply to a guest. The RSVP status is only taken from the sheet when the reply is new or changed,
+// so a status you set by hand stays until that guest changes their reply.
+function applyReply(g, r) {
+  const stamp = r.updated || r.at || "";
+  let changed = false;
+  if ((g.message || "") !== (r.message || "")) { g.message = r.message || ""; changed = true; }
+  if ((g.ticket || "") !== (r.ticket || "")) { g.ticket = r.ticket || ""; changed = true; }
+  if ((g.checked_at || "") !== (r.checkedIn || "")) { g.checked_at = r.checkedIn || ""; changed = true; }
+  g.reply_name = r.name;
+  if (g.open && r.name && g.full_name !== r.name) {
+    g.full_name = r.name; const p = r.name.trim().split(/\s+/); g.first_name = p[0] || ""; g.last_name = p.slice(1).join(" "); changed = true;
+  }
+  if (stamp && stamp !== g.reply_stamp) {
+    g.reply_stamp = stamp;
+    const st = r.attending === "no" ? "declined" : "attending";
+    if (g.status !== st) { g.status = st; changed = true; }
+    g.responded_at = stamp;
+  }
+  return changed;
+}
+
+function applyReplies(replies) {
+  S.replies = replies;
+  const ids = new Set(S.guests.map((g) => g.id));
+  for (const k in S.links) if (!ids.has(S.links[k])) delete S.links[k];
+  const taken = new Set(Object.values(S.links));
+  let changed = 0, unmatched = 0;
+  for (const r of replies) {
+    if (S.ignored[r.id]) continue;
+    let g = null;
+    if (r.token) {
+      g = S.guests.find((x) => x.token === r.token);
+      if (!g) {
+        const p = String(r.name || "").trim().split(/\s+/);
+        g = { id: S.nextId++, full_name: String(r.name || "").trim(), first_name: p[0] || "", last_name: p.slice(1).join(" "),
+              phone: "", token: r.token, open: r.kind === "open", status: "pending", note: "" };
+        S.guests.push(g); changed++;
+      }
+      S.links[r.id] = g.id; taken.add(g.id);
+    } else {
+      g = S.links[r.id] != null ? S.guests.find((x) => x.id === S.links[r.id]) : null;
+      if (!g) { g = findGuest(r, taken); if (g) { S.links[r.id] = g.id; taken.add(g.id); } }
+      if (!g) { unmatched++; continue; }
+    }
+    if (applyReply(g, r)) changed++;
+  }
+  return { changed, unmatched };
+}
+
+function applyLinkInfo(links) {
+  S.linkInfo = {};
+  const known = new Set(S.openLinks.map((l) => l.token));
+  for (const l of links || []) {
+    S.linkInfo[l.token] = { kind: l.kind, usedAt: l.usedAt, usedName: l.usedName };
+    if (l.kind === "open" && !known.has(l.token)) { S.openLinks.push({ token: l.token, created: "" }); known.add(l.token); }
+  }
+}
+
+async function syncReplies(silent) {
+  if (syncing) return;
+  if (!sheetReady()) { if (!silent) { toast("Add the web app link and admin key in Settings first"); openSettings(); } return; }
+  if (silent && document.querySelector("dialog[open]")) return;
+  syncing = true; renderSyncBtn();
+  try {
+    const url = linkBase() + "?action=replies&key=" + encodeURIComponent(S.settings.sheet_key.trim());
+    let data;
+    try { data = await (await fetch(url, { cache: "no-store" })).json(); }
+    catch { throw new Error("Couldn't reach the Sheet. Check the link ends in /exec and the web app is deployed for Anyone."); }
+    if (!data.ok) throw new Error(data.error === "bad key" ? "The admin key doesn't match the one in Code.gs" : (data.error || "The Sheet didn't answer"));
+    applyLinkInfo(data.links);
+    const res = applyReplies(data.replies || []);
+    S.lastSync = now();
+    if (res.changed) S.changesSinceBackup++;
+    await DB.set("state", S);
+    if (!silent || res.changed) toast(`${res.changed} ${res.changed === 1 ? "guest" : "guests"} updated from the Sheet` + (res.unmatched ? `, ${res.unmatched} to match by hand` : ""));
+  } catch (err) { if (!silent) toast(err.message); }
+  finally { syncing = false; render(); }
+}
+
+function renderSyncBtn() {
+  const b = $("#syncBtn");
+  b.disabled = syncing;
+  if (syncing) { b.textContent = "جارٍ المزامنة…"; return; }
+  b.innerHTML = sheetReady() ? `مزامنة الردود${S.lastSync ? `<small>${esc(hhmm(S.lastSync))}</small>` : ""}` : "ربط Google Sheets";
+  b.title = S.lastSync ? `Last synced ${new Date(S.lastSync).toLocaleString()}` : "";
+}
+
+function unmatchedReplies() {
+  const ids = new Set(S.guests.map((g) => g.id));
+  return S.replies.filter((r) => !r.token && !S.ignored[r.id] && !(S.links[r.id] != null && ids.has(S.links[r.id])));
+}
+
+function renderMatches() {
+  const um = view === "mine" ? unmatchedReplies() : [];
+  $("#matchPanel").hidden = !um.length;
+  if (!um.length) { $("#matchList").innerHTML = ""; return; }
+  const opts = S.guests.filter((g) => !g.open).sort((a, b) => a.full_name.localeCompare(b.full_name))
+    .map((g) => `<option value="${g.id}">${esc(g.full_name)}</option>`).join("");
+  $("#matchList").innerHTML = um.map((r) => `<div class="match" data-r="${esc(r.id)}">
+    <div class="who">
+      <div class="name" dir="auto">${esc(r.name)} <span class="pill ${r.attending === "no" ? "p-declined" : "p-attending"}">${r.attending === "no" ? "اعتذر عن الحضور" : "سيحضر"}</span></div>
+      ${r.message ? `<div class="msg" dir="auto" title="${esc(r.message)}">💬 ${esc(r.message)}</div>` : ""}
+    </div>
+    <div class="act">
+      <select aria-label="Guest for ${esc(r.name)}"><option value="">${S.guests.length ? "اختر ضيفًا…" : "استورد قائمة الضيوف أولًا"}</option>${opts}</select>
+      <button class="btn primary" type="button" data-a="link">الرابط</button>
+      <button class="btn" type="button" data-a="ignore">تجاهل</button>
+    </div>
+  </div>`).join("");
+  $("#matchList").querySelectorAll(".match").forEach((el) => {
+    const rid = el.dataset.r;
+    el.querySelector('[data-a="link"]').onclick = () => {
+      const gid = Number(el.querySelector("select").value);
+      if (!gid) return toast("Choose a guest first");
+      linkReply(rid, gid);
+    };
+    el.querySelector('[data-a="ignore"]').onclick = async () => { S.ignored[rid] = true; await save(); toast("Reply ignored"); };
+  });
+}
+
+async function linkReply(rid, gid) {
+  const r = S.replies.find((x) => x.id === rid), g = S.guests.find((x) => x.id === gid);
+  if (!r || !g) return;
+  for (const k in S.links) if (S.links[k] === gid) delete S.links[k];
+  S.links[rid] = gid;
+  g.reply_stamp = null;
+  applyReply(g, r);
+  await save();
+  toast(`${r.name} → ${g.full_name}`);
+}
+
+/* ---------- Open links: one row per link, showing who used it ---------- */
+function openRows() {
+  const byToken = new Map(S.guests.filter((g) => g.token).map((g) => [g.token, g]));
+  return S.openLinks.map((l, i) => {
+    const inf = S.linkInfo[l.token] || {}, g = byToken.get(l.token) || null;
+    const used = !!(inf.usedAt || g);
+    return { n: i + 1, token: l.token, link: linkFor(l.token), used, usedAt: inf.usedAt || (g && g.responded_at) || "",
+             g, name: (g && g.full_name) || inf.usedName || "", declined: !!(g && g.status === "declined") };
+  });
+}
+const openMatch = (r, f) => f === "all" || (f === "unused" && !r.used) || (f === "used" && r.used) ||
+  (f === "attending" && r.used && !r.declined) || (f === "declined" && r.declined);
+
+function renderOpenView() {
+  const rows = openRows();
+  const c = { unused: 0, used: 0, attending: 0, declined: 0 };
+  rows.forEach((r) => { if (!r.used) c.unused++; else { c.used++; if (r.declined) c.declined++; else c.attending++; } });
+  const entered = rows.filter((r) => r.g && r.g.checked_at && !r.declined).length;
+  $("#openSummary").textContent = rows.length ? `${rows.length} links · ${c.used} used · ${c.unused} unused` : "";
+  $("#openCopyTop").disabled = $("#openExportUnusedTop").disabled = !c.unused;
+  $("#openExportAllTop").disabled = !rows.length;
+
+  $("#bar").innerHTML = [["attending", "var(--att)"], ["declined", "var(--blush)"], ["unused", "var(--mist)"]]
+    .map(([k, col]) => `<span style="flex-grow:${c[k]};background:${col}"></span>`).join("");
+  const chips = [["all", rows.length, "links", ""], ["unused", c.unused, "unused", "var(--mist)"], ["used", c.used, "used", "var(--gold)"],
+                 ["attending", c.attending, "attending", "var(--att)"], ["declined", c.declined, "not attending", "var(--blush)"]];
+  $("#legend").innerHTML = chips.map(([k, n, label, col]) =>
+    `<button class="chip ${filter === k ? "on" : ""}" data-f="${k}">${col ? `<i style="background:${col}"></i>` : ""}<strong>${n}</strong> ${label}</button>`).join("") +
+    (entered ? `<span class="door-stat">✓ ${entered} checked in at the door</span>` : "");
+  $("#legend").querySelectorAll(".chip").forEach((b) => (b.onclick = () => { filter = b.dataset.f; render(); }));
+
+  $("#thead").innerHTML = "<tr><th>#</th><th>الرابط</th><th>الحالة</th><th>اسم المسجل</th><th>تأكيد الحضور</th><th>التذكرة</th><th>الرسالة</th></tr>";
+  const q = query.toLowerCase(), qd = q.replace(/\D/g, "");
+  const list = rows.filter((r) => openMatch(r, filter) &&
+    (!q || r.name.toLowerCase().includes(q) || String(r.n) === q || r.token.toLowerCase().includes(q) ||
+     (qd.length >= 3 && r.g && (r.g.ticket || "").includes(qd))));
+  $("#emptyMine").hidden = true;
+  $("#emptyOpen").hidden = rows.length > 0;
+  $("table").hidden = !rows.length;
+  $("#rows").innerHTML = list.map((r) => {
+    const g = r.g;
+    const rsvp = g ? `<span class="pill ${STATUS[bucket(g)].cls}">${STATUS[bucket(g)].label}</span>` : '<span class="sub">—</span>';
+    const ticket = g && g.ticket && !r.declined
+      ? `<span class="tk">${esc(g.ticket)}</span>${g.checked_at ? `<div class="entered">✓ entered ${esc(hhmm(g.checked_at))}</div>` : ""}`
+      : '<span class="sub">—</span>';
+    return `<tr data-token="${esc(r.token)}" class="${r.used ? "" : "unused"}">
+      <td class="num">${r.n}</td>
+      <td><span class="sub">…?t=${esc(r.token)}</span><button class="mini" data-copy="1">نسخ</button></td>
+      <td>${r.used ? `<span class="pill p-waiting">مستخدم</span>${r.usedAt ? `<div class="sub">${esc(fmt(r.usedAt))}</div>` : ""}` : '<span class="pill p-notsent">غير مستخدم</span>'}</td>
+      <td>${r.name ? `<div class="name" dir="auto">${esc(r.name)}</div>` : '<span class="sub">—</span>'}</td>
+      <td>${rsvp}</td>
+      <td>${ticket}</td>
+      <td><div class="reply" dir="auto" title="${esc((g && g.message) || "")}">${g && g.message ? "💬 " + esc(g.message) : '<span class="sub">—</span>'}</div></td>
+    </tr>`;
+  }).join("") || (rows.length ? '<tr><td colspan="7" class="empty">لا توجد روابط مطابقة.</td></tr>' : "");
+  $("#rows").querySelectorAll("tr[data-token]").forEach((tr) => (tr.onclick = (e) => {
+    const token = tr.dataset.token;
+    if (e.target.closest("[data-copy]")) { copyText(linkFor(token)); return; }
+    const g = S.guests.find((x) => x.token === token);
+    if (g) openGuest(g.id); else copyText(linkFor(token));
+  }));
+}
+
+/* ---------- My guests view ---------- */
+function renderMineView() {
+  const s = S.settings, VG = S.guests.filter((g) => !g.open);
+  const counts = { attending: 0, declined: 0, waiting: 0, notsent: 0 };
+  VG.forEach((g) => counts[bucket(g)]++);
+  const keys = Object.keys(counts);
+  const entered = VG.filter((g) => g.checked_at && g.status === "attending").length;
+  $("#bar").innerHTML = keys.map((k) => `<span style="flex-grow:${counts[k]};background:${STATUS[k].color}"></span>`).join("");
+  $("#legend").innerHTML =
+    `<button class="chip ${filter === "all" ? "on" : ""}" data-f="all"><strong>${VG.length}</strong> ضيف</button>` +
+    keys.map((k) => `<button class="chip ${filter === k ? "on" : ""}" data-f="${k}"><i style="background:${STATUS[k].color}"></i><strong>${counts[k]}</strong> ${STATUS[k].label.toLowerCase()}</button>`).join("") +
+    (entered ? `<span class="door-stat">✓ ${entered} checked in at the door</span>` : "");
+  $("#legend").querySelectorAll(".chip").forEach((b) => (b.onclick = () => { filter = b.dataset.f; render(); }));
+
+  const missingLinks = VG.filter((g) => !g.token).length;
+  $("#linksBtn").innerHTML = `إنشاء روابط شخصية<small>${missingLinks}</small>`;
+  $("#linksBtn").disabled = !missingLinks;
+  const btn = (id, kind, label) => { const n = eligible(kind).length; $(id).innerHTML = `${label}<small>${n}</small>`; $(id).disabled = !n; };
+  btn("#sendInvites", "invite", "إرسال الدعوات");
+  btn("#sendRsvpRem", "rsvp_reminder", "تذكير غير المستجيبين");
+  btn("#sendEventRem", "event_reminder", "تذكير المؤكدين");
+  const notDue = VG.filter((g) => g.phone && g.status === "pending" && g.invited_at && !g.rsvp_reminder_at).length - eligible("rsvp_reminder").length;
+  $("#sendRsvpRem").title = notDue > 0 ? `${notDue} more will be due once ${s.rsvp_reminder_days} days have passed since their invitation` : "";
+
+  $("#thead").innerHTML = "<tr><th>الضيف</th><th>تأكيد الحضور</th><th>التذكرة</th><th>الرابط</th><th>تاريخ الدعوة</th><th>الرسالة</th><th>ملاحظات</th><th>إرسال</th></tr>";
+  const q = query.toLowerCase(), qd = q.replace(/\D/g, "");
+  const list = VG.filter((g) => (filter === "all" || bucket(g) === filter) &&
+    (!q || g.full_name.toLowerCase().includes(q) || (qd.length >= 3 && ((g.phone || "").includes(qd) || (g.ticket || "").includes(qd)))))
+    .sort((a, b) => a.full_name.localeCompare(b.full_name));
+  $("#emptyOpen").hidden = true;
+  $("#emptyMine").hidden = VG.length > 0;
+  $("table").hidden = VG.length === 0;
+  $("#rows").innerHTML = list.map((g) => {
+    const b = bucket(g);
+    const quick = b === "waiting" || b === "notsent"
+      ? `<button class="mini y" data-q="attending" title="Mark attending">✓</button><button class="mini n" data-q="declined" title="Mark not attending">✗</button>` : "";
+    const alias = g.reply_name && normName(g.reply_name) !== normName(g.full_name)
+      ? `<div class="alias" dir="auto">replied as ${esc(g.reply_name)}</div>` : "";
+    const ticket = g.ticket && g.status === "attending"
+      ? `<span class="tk">${esc(g.ticket)}</span>${g.checked_at ? `<div class="entered">✓ entered ${esc(hhmm(g.checked_at))}</div>` : ""}`
+      : '<span class="sub">—</span>';
+    return `<tr data-id="${g.id}">
+      <td><div class="name" dir="auto">${esc(g.full_name)}</div>${alias}<div class="sub">${g.phone ? "+" + esc(g.phone) : "—"}</div></td>
+      <td><span class="pill ${STATUS[b].cls}">${STATUS[b].label}</span>${quick}</td>
+      <td>${ticket}</td>
+      <td>${g.token ? `<button class="mini" data-copy="1" title="${esc(linkFor(g.token))}">نسخ الرابط</button>` : '<span class="sub">—</span>'}</td>
+      <td>${g.invited_at ? fmt(g.invited_at) : '<span class="sub">—</span>'}</td>
+      <td><div class="reply" dir="auto" title="${esc(g.message || "")}">${g.message ? "💬 " + esc(g.message) : '<span class="sub">—</span>'}</div></td>
+      <td><div class="reply" dir="auto">${esc(g.note || "")}</div></td>
+      <td><button type="button" class="mini row-send" data-send="1" ${!g.phone ? "disabled" : ""}>${g.invited_at ? "إعادة الإرسال" : "إرسال الدعوة"}</button></td>
+    </tr>`;
+  }).join("") || (VG.length ? '<tr><td colspan="8" class="empty">لا يوجد ضيوف مطابقون.</td></tr>' : "");
+  $("#rows").querySelectorAll("tr[data-id]").forEach((tr) => (tr.onclick = (e) => {
+    const g = S.guests.find((x) => x.id === Number(tr.dataset.id));
+    if (e.target.closest("[data-copy]")) { copyText(linkFor(g.token)); return; }
+    if (e.target.closest("[data-send]")) { startQueue("invite", [g]); return; }
+    const q = e.target.closest("[data-q]");
+    if (q) { setStatus(g, q.dataset.q); save(); toast(`${g.full_name}: ${STATUS[q.dataset.q].label.toLowerCase()}`); return; }
+    openGuest(g.id);
+  }));
+}
+
+/* ---------- Render ---------- */
+function render() {
+  const s = S.settings, G = S.guests;
+  $("#couple").textContent = s.couple || "زفافنا";
+  const w = s.wedding_date ? new Date(s.wedding_date) : null;
+  if (w && !isNaN(w)) {
+    const days = Math.ceil((w - Date.now()) / 864e5);
+    $("#when").innerHTML = `${esc(formatDate(s, "ar", false))}. ` +
+      (days > 1 ? `<b>متبقٍ ${days} يوم</b>` : days === 1 ? "<b>غدًا</b>" : days === 0 ? "<b>اليوم</b>" : "تم الزفاف!");
+  } else $("#when").innerHTML = 'Set your wedding date in <a href="#" id="setDateLink">الإعدادات</a>.';
+  const link = $("#setDateLink"); if (link) link.onclick = (e) => { e.preventDefault(); openSettings(); };
+
+  const needBackup = G.length && S.changesSinceBackup >= 15;
+  $("#backupBanner").hidden = !needBackup;
+  if (needBackup) $("#backupText").textContent = S.lastBackup
+    ? `Your last backup was on ${fmt(S.lastBackup)}. Back up so you don't lose recent changes if this browser's data is cleared.`
+    : "Your guest list is only saved in this browser. Back it up to a file so it can't be lost.";
+
+  const wishes = S.replies.filter((r) => r.message && !S.ignored[r.id]).length;
+  $("#wishBtn").textContent = wishes ? `التهاني (${wishes})` : "التهاني";
+  renderSyncBtn();
+
+  $("#tMine").textContent = G.filter((g) => !g.open).length;
+  $("#tOpen").textContent = S.openLinks.length;
+  $$(".tab").forEach((t) => t.classList.toggle("on", t.dataset.v === view));
+  $("#actMine").hidden = view !== "mine";
+  $("#actOpen").hidden = view !== "open";
+  $("#search").placeholder = view === "open" ? "ابحث بالاسم أو رقم الرابط أو التذكرة" : "ابحث بالاسم أو الجوال أو رقم التذكرة";
+  renderMatches();
+  if (view === "open") renderOpenView(); else renderMineView();
+}
+$$(".tab").forEach((t) => (t.onclick = () => { view = t.dataset.v; filter = "all"; render(); }));
+$("#search").oninput = (e) => { query = e.target.value.trim(); render(); };
+$("#syncBtn").onclick = () => (sheetReady() ? syncReplies(false) : openSettings());
+$("#linksBtn").onclick = async () => {
+  if (!sheetReady()) { toast("Connect the Google Sheet in Settings first"); openSettings(); return; }
+  const b = $("#linksBtn"); b.disabled = true; b.textContent = "جارٍ إنشاء الروابط…";
+  try { const n = await ensureLinks(S.guests); toast(`${n} personal ${n === 1 ? "link" : "links"} created`); }
+  catch (err) { toast(err.message); render(); }
+};
+
+/* ---------- Congratulations ---------- */
+$("#wishBtn").onclick = () => {
+  const list = S.replies.filter((r) => r.message && !S.ignored[r.id])
+    .sort((a, b) => String(b.updated || b.at).localeCompare(String(a.updated || a.at)));
+  $("#wishCount").textContent = list.length ? `${list.length} ${list.length === 1 ? "message" : "messages"} from your guests`
+    : sheetReady() ? "لا توجد رسائل بعد." : "Connect the Google Sheet in Settings to see messages.";
+  $("#wishList").innerHTML = list.map((r) => `<div class="w"><div class="name" dir="auto">${esc(r.name)}${r.kind === "open" ? '<span class="tag">open link</span>' : ""} <span class="pill ${r.attending === "no" ? "p-declined" : "p-attending"}">${r.attending === "no" ? "اعتذر عن الحضور" : "سيحضر"}</span></div><p dir="auto">${esc(r.message)}</p></div>`).join("");
+  $("#wishDlg").showModal();
+};
+
+/* ---------- Create & export open links ---------- */
+function downloadLinks(rows, file) {
+  const aoa = [["#", "Link", "Status", "اسم المسجل", "تأكيد الحضور", "Ticket", "وقت الدخول"]].concat(rows.map((r) => [
+    r.n, r.link, r.used ? "مستخدم" : "غير مستخدم", r.name,
+    r.g ? STATUS[bucket(r.g)].label : "", r.g && !r.declined ? r.g.ticket || "" : "",
+    r.g && r.g.checked_at ? new Date(r.g.checked_at).toLocaleString() : ""]));
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [{ wch: 5 }, { wch: 70 }, { wch: 10 }, { wch: 28 }, { wch: 14 }, { wch: 10 }, { wch: 20 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "الروابط المفتوحة");
+  XLSX.writeFile(wb, file);
+}
+function renderOpenStats() {
+  const rows = openRows(), used = rows.filter((r) => r.used).length;
+  $("#openStats").textContent = rows.length ? `You have ${rows.length} open links · ${used} used · ${rows.length - used} unused` : "لا توجد روابط مفتوحة بعد.";
+}
+$("#openBtn").onclick = $("#openBtn2").onclick = () => { renderOpenStats(); $("#openDlg").showModal(); };
+$("#openGen").onclick = async () => {
+  const n = Math.max(1, Math.min(500, parseInt($("#openCount").value, 10) || 0));
+  if (!sheetReady()) { $("#openDlg").close(); toast("Connect the Google Sheet in Settings first"); openSettings(); return; }
+  const b = $("#openGen"); b.disabled = true; b.textContent = "Creating…";
+  try {
+    const data = await api({ action: "createLinks", count: n });
+    const t = now(), fresh = (data.links || []).map((l) => ({ token: l.token, created: t }));
+    S.openLinks.push(...fresh);
+    view = "open"; filter = "unused"; query = ""; $("#search").value = "";
+    await save();
+    const newTokens = new Set(fresh.map((l) => l.token));
+    downloadLinks(openRows().filter((r) => newTokens.has(r.token)), `open-links-${fresh.length}.xlsx`);
+    $("#openDlg").close();
+    toast(`${fresh.length} open links created and downloaded`);
+  } catch (err) { toast(err.message); }
+  finally { b.disabled = false; b.textContent = "Create & download Excel"; }
+};
+$("#openExportUnusedTop").onclick = () => downloadLinks(openRows().filter((r) => !r.used), "open-links-unused.xlsx");
+$("#openExportAllTop").onclick = () => downloadLinks(openRows(), "open-links-all.xlsx");
+$("#openCopyTop").onclick = () => { const rows = openRows().filter((r) => !r.used); copyText(rows.map((r) => r.link).join("\n"), `${rows.length} links copied`); };
+
+/* ---------- Excel import ---------- */
+const HEAD = {
+  full: ["full name", "fullname", "name", "guest", "guest name", "الاسم", "الاسم الكامل", "اسم الضيف", "الاسم الثلاثي"],
+  first: ["first name", "firstname", "first", "given name", "الاسم الأول", "الاسم الاول"],
+  last: ["last name", "lastname", "last", "surname", "family name", "اسم العائلة", "العائلة"],
+  phone: ["phone", "phone number", "mobile", "mobile number", "whatsapp", "whatsapp number", "number", "رقم الجوال", "الجوال", "جوال", "رقم الهاتف", "الهاتف", "واتساب", "رقم الواتساب"],
+};
+const normH = (s) => String(s ?? "").trim().toLowerCase().replace(/[_\-]+/g, " ").replace(/\s+/g, " ");
+const cell = (v) => typeof v === "number" ? String(Math.round(v)) : String(v ?? "").trim();
+const clean = (v) => String(v ?? "").replace(/[ \t]+/g, " ").trim();
+const looksPhone = (v) => /^\+?[\d\s\-().]{7,}$/.test(cell(v));
+
+function normalizePhone(input, cc = "966") {
+  let d = String(input ?? "").replace(/\D/g, "");
+  if (!d) return null;
+  if (d.startsWith("00")) d = d.slice(2);
+  else if (cc && !d.startsWith(cc)) {
+    if (d.startsWith("0")) d = cc + d.slice(1);
+    else if (d.length <= 10) d = cc + d;
+  }
+  return d.length >= 8 && d.length <= 15 ? d : null;
+}
+
+function mapRows(aoa) {
+  const nonEmpty = (r) => r && r.some((c) => cell(c) !== "");
+  if (!aoa.some(nonEmpty)) return [];
+  const h = aoa.slice(0, 5).findIndex((r) => r.some((c) => HEAD.phone.includes(normH(c))));
+  const col = {};
+  if (h >= 0) {
+    aoa[h].forEach((c, i) => { const n = normH(c); for (const k in HEAD) if (col[k] === undefined && HEAD[k].includes(n)) col[k] = i; });
+  } else {
+    const sample = aoa.filter(nonEmpty).slice(0, 15), width = Math.max(...aoa.map((r) => r.length));
+    for (let i = 0; i < width; i++) if (sample.filter((r) => looksPhone(r[i])).length >= sample.length / 2) { col.phone = i; break; }
+    const textCols = [...Array(width).keys()].filter((i) => i !== col.phone && sample.some((r) => cell(r[i])));
+    if (textCols.length >= 2) { col.first = textCols[0]; col.last = textCols[1]; } else col.full = textCols[0];
+  }
+  if (col.phone === undefined) throw new Error("Couldn't find a phone column. Add a header named Phone.");
+  if (col.full === undefined && col.first === undefined) throw new Error("Couldn't find a name column. Add a header named Full name, or First name and Last name.");
+  return aoa.slice(h + 1).map((r, i) => nonEmpty(r) && ({
+    row: h + 2 + i,
+    full_name: col.full !== undefined ? cell(r[col.full]) : "",
+    first_name: col.first !== undefined ? cell(r[col.first]) : "",
+    last_name: col.last !== undefined ? cell(r[col.last]) : "",
+    phone: cell(r[col.phone]),
+  })).filter(Boolean);
+}
+
+function importRows(rows) {
+  const skipped = [], seen = new Set();
+  let added = 0, updated = 0;
+  for (const r of rows) {
+    let first = clean(r.first_name), last = clean(r.last_name);
+    const full = clean(r.full_name) || [first, last].filter(Boolean).join(" ");
+    if (!first && full) { const p = full.split(/\s+/); first = p[0]; last = last || p.slice(1).join(" "); }
+    const phone = normalizePhone(r.phone, S.settings.country_code);
+    if (!full) { skipped.push(`Row ${r.row}: missing name`); continue; }
+    if (!phone) { skipped.push(`Row ${r.row} (${full}): invalid phone "${clean(r.phone)}"`); continue; }
+    if (seen.has(phone)) { skipped.push(`Row ${r.row} (${full}): phone repeated in the file`); continue; }
+    seen.add(phone);
+    const existing = S.guests.find((g) => g.phone === phone);
+    if (existing) { Object.assign(existing, { full_name: full, first_name: first, last_name: last }); updated++; }
+    else { S.guests.push({ id: S.nextId++, full_name: full, first_name: first, last_name: last, phone, status: "pending", note: "" }); added++; }
+  }
+  return { added, updated, skipped };
+}
+
+function info(title, text, items = []) {
+  $("#infoTitle").textContent = title; $("#infoText").textContent = text;
+  $("#infoList").hidden = !items.length; $("#infoList").innerHTML = items.map((x) => `<div>${esc(x)}</div>`).join("");
+  $("#infoDlg").showModal();
+}
+
+$("#importBtn").onclick = $("#importBtn2").onclick = () => $("#file").click();
+$("#file").onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = "";
+  if (!f) return;
+  try {
+    const wb = XLSX.read(await f.arrayBuffer());
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: "" });
+    const res = importRows(mapRows(aoa));
+    if (S.replies.length) applyReplies(S.replies);
+    view = "mine"; filter = "all";
+    await save();
+    let linkNote = "";
+    if (sheetReady()) {
+      try { const n = await ensureLinks(S.guests); if (n) linkNote = ` ${n} personal invitation links were created.`; }
+      catch (err) { linkNote = ` Personal links couldn't be created yet (${err.message}). Press "إنشاء روابط شخصية" to try again.`; }
+    } else linkNote = " Connect the Google Sheet in Settings to create each guest's personal link.";
+    info(`${res.added} guests added${res.updated ? `, ${res.updated} updated` : ""}`,
+      (res.skipped.length ? `${res.skipped.length} rows were skipped. Fix them in the file and import again; existing guests are updated, not duplicated.`
+                          : "Everyone was imported. Importing again updates guests (matched by phone) instead of duplicating them.") + linkNote,
+      res.skipped);
+  } catch (err) { toast(err.message); }
+};
+
+/* ---------- Sending through WhatsApp ---------- */
+const MSG_KEY = { invite: "msg_invite", rsvp_reminder: "msg_rsvp_reminder", event_reminder: "msg_event_reminder" };
+const MARK = { invite: "invited_at", rsvp_reminder: "rsvp_reminder_at", event_reminder: "event_reminder_at" };
+const KIND_LABEL = { invite: "Invitation", rsvp_reminder: "Reminder to reply", event_reminder: "Wedding reminder" };
+function messageFor(g, kind) {
+  let tpl = S.settings[MSG_KEY[kind]] || "";
+  const link = g.token ? linkFor(g.token) : "";
+  if (kind !== "event_reminder" && link && !tpl.includes("{link}")) tpl += "\n\n{link}";
+  return fill(tpl, g, S.settings, { link }).replace(/\n{3,}/g, "\n\n").trim();
+}
+function waUrl(g, kind) {
+  const text = encodeURIComponent(messageFor(g, kind));
+  return S.settings.wa_mode === "web" ? `https://web.whatsapp.com/send?phone=${g.phone}&text=${text}` : `https://wa.me/${g.phone}?text=${text}`;
+}
+const attachPicture = (kind) => kind === "invite" && S.settings.attach_mode !== "none" && picPng;
+
+let queue = [], qi = 0, qKind = "invite", qSent = 0;
+async function startQueue(kind, guests) {
+  guests = guests.filter((g) => g.phone);
+  if (!guests.length) return;
+  const tpl = S.settings[MSG_KEY[kind]] || "", st = S.settings;
+  const missing = [["{date}", st.wedding_date, "wedding date"], ["{venue}", st.venue, "venue"], ["{map}", st.map_url, "Google Maps link"]]
+    .filter(([ph, v]) => tpl.includes(ph) && !v).map((x) => x[2]);
+  if (missing.length) { toast(`Add the ${missing.join(" and ")} in Settings first; the message uses it`); openSettings(); return; }
+  if (kind !== "event_reminder" && guests.some((g) => !g.token)) {
+    if (!sheetReady()) { toast("Connect the Google Sheet in Settings first, so each guest gets a personal link"); openSettings(); return; }
+    try { await ensureLinks(guests); } catch (err) { toast(err.message); return; }
+  }
+  queue = guests; qi = 0; qKind = kind; qSent = 0;
+  showQueueItem();
+  $("#queueDlg").showModal();
+}
+let qOpened = false;
+function showQueueItem() {
+  if (qi >= queue.length) { $("#queueDlg").close(); return; }
+  const g = queue[qi];
+  qOpened = false;
+  $("#qCount").textContent = `${KIND_LABEL[qKind]}: ${qi + 1} من ${queue.length}`;
+  $("#qName").textContent = g.full_name;
+  $("#qPhone").textContent = "+" + g.phone;
+  $("#qMsg").textContent = messageFor(g, qKind);
+  $("#qCopy").hidden = !attachPicture(qKind);
+  $("#qCopy").textContent = "٢. نسخ صورة الدعوة";
+  $("#qConfirm").disabled = true;
+  $("#qOpen").textContent = "١. فتح واتساب";
+  $("#qHint").textContent = attachPicture(qKind)
+    ? "افتح محادثة واتساب، ثم اضغط «نسخ صورة الدعوة» هنا وارجع إلى المحادثة للصق الصورة باستخدام Ctrl+V أو Cmd+V. أرسل الصورة والنص، وبعد التأكد اضغط «تم الإرسال — التالي». ملاحظة: واتساب لا يرفق الصور تلقائيًا عبر روابط المحادثات."
+    : qKind === "invite" && S.settings.attach_mode !== "none"
+      ? "لم يتم رفع صورة دعوة بعد. يمكنك إضافتها من الإعدادات. افتح واتساب وأرسل النص، ثم أكّد الإرسال."
+      : "افتح واتساب وأرسل الرسالة، ثم ارجع واضغط «تم الإرسال — التالي».";
+}
+$("#qOpen").onclick = () => {
+  const g = queue[qi];
+  // Open synchronously in the click gesture to reduce popup blocking.
+  const opened = window.open(waUrl(g, qKind), S.settings.wa_mode === "web" ? "whatsapp" : "_blank");
+  qOpened = true;
+  $("#qConfirm").disabled = false;
+  $("#qOpen").textContent = "إعادة فتح واتساب";
+  if (!opened) toast("إذا لم تفتح المحادثة، اسمح بالنوافذ المنبثقة لهذا الملف أو افتح واتساب يدويًا");
+};
+$("#qCopy").onclick = async () => {
+  if (!attachPicture(qKind)) return;
+  try {
+    if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") throw new Error("Clipboard unavailable");
+    await navigator.clipboard.write([new ClipboardItem({ "image/png": picPng })]);
+    toast("تم نسخ الصورة. انتقل إلى واتساب والصقها باستخدام Ctrl+V أو Cmd+V، ثم أرسلها");
+  } catch (e) {
+    download(picPng, "دعوة-خالد-وهيا.png");
+    toast("المتصفح لا يسمح بنسخ الصور هنا؛ تم تنزيل الصورة لإرفاقها يدويًا في واتساب");
+  }
+};
+$("#qConfirm").onclick = async () => {
+  if (!qOpened || !queue[qi]) return;
+  const g = queue[qi];
+  g[MARK[qKind]] = now();
+  qSent++; qi++;
+  try { await save(); } catch (e) { toast("تعذر حفظ حالة الإرسال: " + e.message); }
+  showQueueItem();
+};
+$("#qSkip").onclick = () => { qi++; showQueueItem(); };
+$("#qStop").onclick = () => $("#queueDlg").close();
+$("#queueDlg").addEventListener("close", () => {
+  if (qSent) toast(`تم تأكيد إرسال ${qSent} رسالة`);
+  qSent = 0;
+});
+$("#sendInvites").onclick = () => startQueue("invite", eligible("invite"));
+$("#sendRsvpRem").onclick = () => startQueue("rsvp_reminder", eligible("rsvp_reminder"));
+$("#sendEventRem").onclick = () => startQueue("event_reminder", eligible("event_reminder"));
+
+/* ---------- Guest dialog ---------- */
+function openGuest(id) {
+  const g = S.guests.find((x) => x.id === id); if (!g) return;
+  editing = g;
+  const f = $("#guestForm");
+  $("#gTitle").textContent = g.full_name;
+  f.full_name.value = g.full_name; f.phone.value = g.phone ? "+" + g.phone : "";
+  f.status.value = g.status; f.note.value = g.note || "";
+  $("#gLinkWrap").hidden = !g.token;
+  $("#gLink").value = g.token ? linkFor(g.token) : "";
+  const bits = [];
+  if (g.open) {
+    const row = openRows().find((r) => r.token === g.token);
+    bits.push(row ? `Registered through open link #${row.n}` : "مسجل عبر رابط مفتوح");
+  }
+  if (g.ticket && g.status === "attending") bits.push(`ticket ${g.ticket}` + (g.checked_at ? ` (entered ${hhmm(g.checked_at)})` : ""));
+  if (g.invited_at) bits.push(`invited ${fmt(g.invited_at)}`);
+  if (g.rsvp_reminder_at) bits.push(`reminded ${fmt(g.rsvp_reminder_at)}`);
+  if (g.responded_at) bits.push(`answered ${fmt(g.responded_at)}`);
+  if (g.reply_stamp && !g.open && g.reply_name && normName(g.reply_name) !== normName(g.full_name)) bits.push(`replied as "${g.reply_name}"`);
+  $("#gMeta").textContent = bits.join(", ");
+  $("#gMsgWrap").hidden = !g.message;
+  $("#gMsg").textContent = g.message || "";
+  $("#gSend").textContent = g.invited_at ? "Send invitation again" : "إرسال الدعوة";
+  $("#gSend").hidden = !!g.open;
+  $("#gUnsend").hidden = !g.invited_at;
+  $("#guestDlg").showModal();
+}
+function applyGuestForm() {
+  const f = $("#guestForm"), g = editing;
+  const raw = f.phone.value.trim();
+  const phone = raw ? normalizePhone(raw, S.settings.country_code) : "";
+  if (raw && !phone) throw new Error("Invalid phone number");
+  if (!phone && !g.open) throw new Error("Add a WhatsApp number");
+  if (phone && S.guests.some((x) => x !== g && x.phone === phone)) throw new Error("Another guest already has this phone number");
+  g.full_name = clean(f.full_name.value);
+  const p = g.full_name.split(/\s+/); g.first_name = p[0] || ""; g.last_name = p.slice(1).join(" ");
+  g.phone = phone; g.note = clean(f.note.value);
+  if (f.status.value !== g.status) setStatus(g, f.status.value);
+}
+$("#guestForm").onsubmit = async (e) => {
+  e.preventDefault();
+  try { applyGuestForm(); await save(); $("#guestDlg").close(); toast("تم حفظ الضيف"); } catch (err) { toast(err.message); }
+};
+$("#gCancel").onclick = () => $("#guestDlg").close();
+$("#gCopy").onclick = () => copyText($("#gLink").value);
+$("#gSend").onclick = async () => {
+  try { applyGuestForm(); await save(); } catch (err) { return toast(err.message); }
+  $("#guestDlg").close();
+  startQueue("invite", [editing]);
+};
+$("#gUnsend").onclick = async () => { editing.invited_at = null; await save(); $("#guestDlg").close(); toast("Marked as not sent"); };
+$("#gDelete").onclick = async () => {
+  if (!confirm(`Delete ${editing.full_name}?`)) return;
+  S.guests = S.guests.filter((g) => g !== editing);
+  await save(); $("#guestDlg").close(); toast("تم حذف الضيف");
+};
+
+/* ---------- Settings ---------- */
+function showPicture() {
+  $("#picPreview").hidden = !picBlob;
+  $("#picRemove").hidden = !picBlob;
+  if (picBlob) $("#picPreview").src = URL.createObjectURL(picBlob);
+}
+function openSettings() {
+  const f = $("#setForm"), s = S.settings;
+  for (const el of f.elements) if (el.name && el.name in s) el.value = s[el.name];
+  showPicture();
+  const ign = Object.keys(S.ignored).length;
+  $("#unignoreBtn").hidden = !ign;
+  $("#unignoreBtn").textContent = `Show ignored replies again (${ign})`;
+  $("#setDlg").showModal();
+}
+$("#picPick").onclick = () => $("#picFile").click();
+$("#picFile").onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  await DB.set("bg", f); await setPicture(f); showPicture(); toast("Invitation picture saved");
+};
+$("#picRemove").onclick = async () => { await DB.del("bg"); await setPicture(null); showPicture(); };
+$("#unignoreBtn").onclick = async () => { S.ignored = {}; $("#unignoreBtn").hidden = true; await save(); toast("Ignored replies are back in the list"); };
+$("#setForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const before = S.settings.sheet_url + "|" + S.settings.sheet_key;
+  const out = {};
+  for (const el of $("#setForm").elements) if (el.name) out[el.name] = el.value;
+  out.sheet_url = (out.sheet_url || "").trim();
+  out.sheet_key = (out.sheet_key || "").trim();
+  S.settings = { ...S.settings, ...out };
+  await save(); $("#setDlg").close(); toast("تم حفظ الإعدادات");
+  if (sheetReady() && before !== out.sheet_url + "|" + out.sheet_key) syncReplies(false);
+};
+$("#setCancel").onclick = () => $("#setDlg").close();
+$("#openSettings").onclick = openSettings;
+
+/* ---------- Backup / restore ---------- */
+const blobToDataUrl = (b) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(b); });
+function download(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+async function backup() {
+  S.lastBackup = now(); S.changesSinceBackup = 0;
+  await DB.set("state", S);
+  const data = { version: 2, state: S, bg: picBlob ? await blobToDataUrl(picBlob) : null };
+  download(new Blob([JSON.stringify(data)], { type: "application/json" }), `wedding-rsvp-backup-${new Date().toISOString().slice(0, 10)}.json`);
+  render();
+}
+$("#backupBtn").onclick = $("#backupNow").onclick = backup;
+$("#restoreBtn").onclick = () => $("#restoreFile").click();
+$("#restoreFile").onchange = async (e) => {
+  const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!data.state || !Array.isArray(data.state.guests)) throw new Error("This isn't a wedding RSVP backup file");
+    if (S.guests.length && !confirm(`Replace the current ${S.guests.length} guests with the ${data.state.guests.length} guests in this backup?`)) return;
+    S = { ...EMPTY(), ...data.state, settings: { ...DEFAULTS, ...data.state.settings } };
+    normalizeState();
+    if (data.bg) { const b = await (await fetch(data.bg)).blob(); await DB.set("bg", b); await setPicture(b); }
+    else { await DB.del("bg"); await setPicture(null); }
+    await DB.set("state", S);
+    $("#setDlg").close(); render(); toast("تم استعادة النسخة");
+    syncReplies(true);
+  } catch (err) { toast(err.message); }
+};
+$("#resetBtn").onclick = async () => {
+  if (!confirm("Delete every guest, setting and the picture from this browser? Back up first if you might need them. (Replies, links and tickets in the Google Sheet are not touched.)")) return;
+  S = EMPTY();
+  await DB.del("bg"); await setPicture(null); await DB.set("state", S);
+  $("#setDlg").close(); render(); toast("تم حذف جميع البيانات");
+};
+
+/* ---------- Export: my guests + open links ---------- */
+$$("[data-export]").forEach((b) => (b.onclick = () => {
+  const head = ["الاسم الكامل", "Phone", "تأكيد الحضور", "Ticket", "وقت الدخول", "التهاني", "الرابط الشخصي", "Note", "تاريخ الدعوة", "وقت الرد"];
+  const row = (g) => [g.full_name, g.phone ? "+" + g.phone : "", STATUS[bucket(g)].label,
+    g.status === "attending" ? g.ticket || "" : "", g.checked_at ? new Date(g.checked_at).toLocaleString() : "",
+    g.message || "", g.token ? linkFor(g.token) : "", g.note || "", g.invited_at || "", g.responded_at || ""];
+  const openHead = ["#", "Link", "Status", "اسم المسجل", "تأكيد الحضور", "Ticket", "وقت الدخول", "التهاني"];
+  const openRow = (r) => [r.n, r.link, r.used ? "مستخدم" : "غير مستخدم", r.name, r.g ? STATUS[bucket(r.g)].label : "",
+    r.g && !r.declined ? r.g.ticket || "" : "", r.g && r.g.checked_at ? new Date(r.g.checked_at).toLocaleString() : "", (r.g && r.g.message) || ""];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([head, ...S.guests.filter((g) => !g.open).map(row)]), "ضيوفي");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([openHead, ...openRows().map(openRow)]), "الروابط المفتوحة");
+  XLSX.writeFile(wb, "wedding-rsvps.xlsx");
+}));
+
+let toastTimer;
+function toast(msg) { $("#toast").textContent = msg; $("#toast").hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => ($("#toast").hidden = true), 3500); }
+
+setInterval(() => { if (!document.hidden) syncReplies(true); }, 120000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) syncReplies(true); });
+
+
+/* Page routing: visual sections share the original underlying guest and link logic. */
+let adminPage = "overview";
+function navigateAdmin(next){
+  adminPage=next;
+  if(next==="guests") { view="mine"; filter="all"; }
+  if(next==="links") { view="open"; filter="all"; }
+  document.querySelectorAll(".navitem").forEach(b=>{const yes=b.dataset.page===next;b.classList.toggle("active",yes);b.setAttribute("aria-current",yes?"page":"false");});
+  $("#overviewPanel").hidden=next!=="overview";
+  $("#sendingPanel").hidden=next!=="sending";
+  $("#workPanel").hidden=next!=="guests"&&next!=="links";
+  if(next==="guests"||next==="links") {
+    $("#workEyebrow").textContent=next==="links"?"متابعة استخدام الروابط":"إدارة المدعوين";
+    $("#workTitle").textContent=next==="links"?"الروابط المفتوحة":"قائمة الضيوف";
+    $("#workDesc").textContent=next==="links"?"أنشئ روابط عامة وراجع المستخدمة وغير المستخدمة وحالة كل تسجيل.":"ابحث في القائمة وحدث الردود أو افتح ملف أي ضيف.";
+  }
+  render();
+}
+function renderOverview(){
+  const mine=S.guests.filter(g=>!g.open), all=S.guests;
+  const attending=all.filter(g=>g.status==="attending").length, declined=all.filter(g=>g.status==="declined").length;
+  const waiting=all.filter(g=>g.status==="pending").length;
+  const entered=all.filter(g=>g.checked_at&&g.status==="attending").length;
+  const cards=[
+    ["إجمالي الضيوف",mine.length,"الانتقال لقائمة الضيوف","guests"],
+    ["الحضور المؤكد",attending,"من جميع القوائم","guests"],
+    ["لم يردوا بعد",waiting,"تحتاج إلى متابعة","sending"],
+    ["تم تسجيل دخولهم",entered,"عند البوابة","guests"]
+  ];
+  $("#metricGrid").innerHTML=cards.map(([t,n,d,page])=>`<button type="button" class="metriccard" data-go="${page}"><span class="mt">${t}</span><strong class="mv">${n}</strong><span class="md">${d}</span></button>`).join("");
+  $("#metricGrid").querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>navigateAdmin(b.dataset.go));
+  const total=attending+declined+waiting;
+  $("#overviewBar").innerHTML=[ [attending,"var(--att)"],[declined,"var(--blush)"],[waiting,"var(--ochre)"]].map(([n,c])=>`<span style="flex:${n} 1 0;background:${c}"></span>`).join("");
+  $("#overviewSummary").innerHTML=`<span>● مؤكدون <b>${attending}</b></span><span>● معتذرون <b>${declined}</b></span><span>● بانتظار الرد <b>${waiting}</b></span><span>● روابط مفتوحة <b>${S.openLinks.length}</b></span>`;
+}
+function setupNewAdmin(){
+ document.querySelectorAll(".navitem").forEach(b=>b.onclick=()=>navigateAdmin(b.dataset.page));
+ document.querySelectorAll("[data-jump]").forEach(b=>b.onclick=()=>navigateAdmin(b.dataset.jump));
+ $("#overviewSync").onclick=()=>$("#syncBtn").click();
+ const defs=[
+  ["#sendInvites","إرسال الدعوات","إرسال الدعوة والرابط الشخصي للضيوف الذين لم تفتح لهم محادثة دعوة بعد."],
+  ["#sendRsvpRem","تذكير غير المستجيبين","متابعة الضيوف الذين لم يؤكدوا حضورهم بعد حلول موعد التذكير."],
+  ["#sendEventRem","تذكير المؤكدين","إرسال تفاصيل الموقع والتذكير بالموعد للضيوف المؤكدين."]
+ ];
+ defs.forEach(([selector,title,desc])=>{const tile=document.createElement("article");tile.className="sendtile";tile.innerHTML=`<h3>${title}</h3><p>${desc}</p>`;tile.appendChild($(selector));$("#sendTiles").appendChild(tile);});
+ navigateAdmin("overview");
+}
+const originalAdminRender = render;
+render = function(){ originalAdminRender(); renderOverview(); };
+setupNewAdmin();
+
+loadAll().catch((e) => info("This browser can't save data", "Open this file in Chrome, Edge or Safari (not a private window). " + e.message));
+</script>
+</body>
+</html>
