@@ -154,6 +154,10 @@ a{color:var(--gold)}
 .gr .who .sub{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gr .act{text-align:end}
 .gr .ph{color:var(--muted);font-size:15px;text-align:right}
+.selall{display:flex;align-items:center;gap:10px;min-height:48px;padding:0 16px;margin-bottom:8px;border:1px solid var(--line);border-radius:14px;background:var(--surface);cursor:pointer;font-size:15px;color:var(--muted);width:fit-content;max-width:100%}
+.selall input{width:20px;height:20px;accent-color:var(--gold);cursor:pointer}
+.ock{width:44px;padding:0 0 0 0 !important;text-align:center}
+.ock input{width:20px;height:20px;accent-color:var(--gold);cursor:pointer;vertical-align:middle}
 .match{padding:14px 16px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .match .who{flex:1 1 220px;min-width:0}
 .match select{min-height:44px;border:1px solid var(--line2);background:var(--field);border-radius:10px;padding:0 10px;max-width:100%}
@@ -379,6 +383,7 @@ main{padding-bottom:60px}
       <div id="matchList"></div>
     </section>
     <div class="chips" id="chips" role="group" aria-label="تصفية"></div>
+    <label class="selall" id="gSelWrap"><input type="checkbox" id="gSelAll"><span id="gSelTxt">تحديد الكل</span></label>
     <div class="list" id="guestList"></div>
     <div class="empty card" id="emptyGuests" hidden>
       <p>أضف ضيوفك من ملف Excel يحتوي على الاسم ورقم الجوال، أو أضفهم واحدًا واحدًا.</p>
@@ -441,12 +446,19 @@ main{padding-bottom:60px}
       <button type="button" class="btn" id="openExport">تنزيل Excel</button>
     </div>
     <div class="chips" id="oChips" role="group" aria-label="تصفية"></div>
+    <label class="selall" id="oSelWrap"><input type="checkbox" id="oSelAll"><span id="oSelTxt">تحديد الكل</span></label>
     <div class="list" style="overflow-x:auto">
       <table style="width:100%;min-width:720px;border-collapse:collapse;font-size:15px" id="oTable">
-        <thead><tr style="color:var(--muted2);font-size:14px;text-align:start"><th style="padding:12px 16px;text-align:start">#</th><th style="text-align:start">الرابط</th><th style="text-align:start">الحالة</th><th style="text-align:start">المسجِّل</th><th style="text-align:start">الرد</th><th style="text-align:start">التذكرة</th></tr></thead>
+        <thead><tr style="color:var(--muted2);font-size:14px;text-align:start"><th class="ock"><span class="sr">تحديد</span></th><th style="padding:12px 8px;text-align:start">#</th><th style="text-align:start">الرابط</th><th style="text-align:start">الحالة</th><th style="text-align:start">المسجِّل</th><th style="text-align:start">الرد</th><th style="text-align:start">التذكرة</th></tr></thead>
         <tbody id="oRows"></tbody>
       </table>
       <div class="empty" id="emptyOpen" hidden><p>لا توجد روابط مفتوحة بعد.</p><button type="button" class="btn primary" id="openBtn2">إنشاء روابط مفتوحة</button></div>
+    </div>
+    <div class="bulk" id="oBulk" hidden>
+      <b id="oBulkCount"></b><span class="grow"></span>
+      <button type="button" class="btn sm" id="oBulkCopy">نسخ الروابط</button>
+      <button type="button" class="btn sm" id="oBulkDelete" style="color:#8A1C2C;border-color:#8A1C2C">حذف</button>
+      <button type="button" class="btn sm ghost" id="oBulkClear">إلغاء</button>
     </div>
   </section>
 
@@ -509,7 +521,7 @@ main{padding-bottom:60px}
       <div class="field"><label for="gName">الاسم كما يظهر في الدعوة</label><input id="gName" name="full_name" dir="auto" autocomplete="off"></div>
     </div>
     <datalist id="titles"><option value="السيد"><option value="السيدة"><option value="الآنسة"><option value="المهندس"><option value="المهندسة"><option value="الدكتور"><option value="الدكتورة"><option value="الأستاذ"><option value="الأستاذة"><option value="الشيخ"></datalist>
-    <div class="field"><label for="gPhone">رقم واتساب</label><input id="gPhone" name="phone" dir="ltr" inputmode="tel" autocomplete="off" placeholder="055… أو +970…"><p class="hint" id="gPhoneHint">اكتب الرقم كما هو: 055… أو ‎+970… أو ‎00212… — يتعرّف على الدولة تلقائيًا.</p></div>
+    <div class="field"><label for="gPhone">رقم واتساب</label><input id="gPhone" name="phone" dir="ltr" inputmode="tel" autocomplete="off" placeholder="055… أو +970…"><p class="hint" id="gPhoneHint">اكتب الرقم كما هو: 055… أو بمفتاح أي دولة مثل ‎+970… أو ‎0044… — يتعرّف على الدولة تلقائيًا.</p></div>
     <div class="grid2f">
       <div class="field" id="gStatusWrap"><label for="gStatus">تأكيد الحضور</label>
         <select id="gStatus" name="status"><option value="pending">لم يرد بعد</option><option value="attending">سيحضر</option><option value="declined">اعتذر</option></select></div>
@@ -661,7 +673,7 @@ const EMPTY = () => ({ settings: { ...DEFAULTS }, guests: [], nextId: 1, lastBac
   replies: [], links: {}, ignored: {}, lastSync: null, openLinks: [], linkInfo: {}, session: null, deletedTokens: {} });
 let S = EMPTY();
 let page = "home", filter = "all", query = "", oFilter = "all", oQuery = "", editing = null, sendKind = "invite", includeNotDue = false;
-const selected = new Set();
+const selected = new Set(), oSelected = new Set();
 
 function normalizeState() {
   S.replies = S.replies || []; S.links = S.links || {}; S.ignored = S.ignored || {};
@@ -709,27 +721,41 @@ function setStatus(g, status) {
 /* ---------- Phone numbers ----------
    Accepts local (055…, uses the country code in Settings), international (+970…, 00972…),
    numbers that lost their + in Excel (212612…), Arabic digits (٠٥٥…), and a stray 0 after the code. */
+/* Every international calling code (ITU E.164). Lengths are checked exactly where known;
+   any other country is accepted at 8–15 digits in total, the international maximum. */
 const CC_LEN = { "966": 12, "970": 12, "972": 12, "212": 12, "20": 12, "971": 12, "962": 12, "34": 11,
   "965": 11, "973": 11, "974": 11, "968": 11, "961": [10, 11], "963": 12, "964": 13, "90": 12,
-  "1": 11, "44": 12, "33": 11, "49": [11, 13], "216": 11, "213": 12, "218": 12, "249": 12, "967": 12 };
-const CODES = Object.keys(CC_LEN).sort((a, b) => b.length - a.length);
+  "1": 11, "44": 12, "33": 11, "49": [11, 12, 13], "216": 11, "213": 12, "218": 12, "249": 12, "967": 12 };
+const ALL_CODES = ("1 7 20 27 30 31 32 33 34 36 39 40 41 43 44 45 46 47 48 49 51 52 53 54 55 56 57 58 60 61 62 63 64 65 66 81 82 84 86 90 91 92 93 94 95 98 " +
+  "211 212 213 216 218 220 221 222 223 224 225 226 227 228 229 230 231 232 233 234 235 236 237 238 239 240 241 242 243 244 245 246 248 249 " +
+  "250 251 252 253 254 255 256 257 258 260 261 262 263 264 265 266 267 268 269 290 291 297 298 299 " +
+  "350 351 352 353 354 355 356 357 358 359 370 371 372 373 374 375 376 377 378 380 381 382 383 385 386 387 389 420 421 423 " +
+  "500 501 502 503 504 505 506 507 508 509 590 591 592 593 594 595 596 597 598 599 " +
+  "670 672 673 674 675 676 677 678 679 680 681 682 683 685 686 687 688 689 690 691 692 " +
+  "850 852 853 855 856 880 886 960 961 962 963 964 965 966 967 968 970 971 972 973 974 975 976 977 992 993 994 995 996 998").split(" ");
+const CODES = ALL_CODES.sort((a, b) => b.length - a.length);
 const codeOf = (d) => CODES.find((c) => d.startsWith(c));
+const KEEPS_ZERO = new Set(["39", "378", "225", "229", "242"]);   // countries where a leading 0 is part of the number
+const lenOk = (code, d) => CC_LEN[code] ? [].concat(CC_LEN[code]).includes(d.length) : d.length - code.length >= 6;
 function normalizePhone(input, cc = "966") {
   let raw = String(input ?? "").trim()
-    .replace(/[٠-٩]/g, (c) => c.charCodeAt(0) - 0x0660)
-    .replace(/[۰-۹]/g, (c) => c.charCodeAt(0) - 0x06F0);
+    .replace(/[\u0660-\u0669]/g, (c) => c.charCodeAt(0) - 0x0660)
+    .replace(/[\u06F0-\u06F9]/g, (c) => c.charCodeAt(0) - 0x06F0);
   cc = String(cc || "966").replace(/\D/g, "") || "966";
   const intl = /^(\+|00)/.test(raw);
   let d = raw.replace(/\D/g, "");
   if (!d) return null;
   if (d.startsWith("00")) d = d.slice(2);
   else if (!intl) {
+    const c = codeOf(d);
+    const looksIntl = c && (CC_LEN[c] ? lenOk(c, d) : d.length >= 11);   // number that lost its + (e.g. from Excel)
     if (d.startsWith("0")) d = cc + d.slice(1);
-    else if (!(codeOf(d) && d.length >= 11)) d = cc + d;
+    else if (!looksIntl) d = cc + d;
   }
   const code = codeOf(d);
-  if (code && d[code.length] === "0") d = code + d.slice(code.length + 1);
-  if (code && ![].concat(CC_LEN[code]).includes(d.length)) return null;
+  if (!code) return null;
+  if (d[code.length] === "0" && !KEEPS_ZERO.has(code)) d = code + d.slice(code.length + 1);   // +970 059… → 970 59…
+  if (!lenOk(code, d)) return null;
   return d.length >= 8 && d.length <= 15 ? d : null;
 }
 function fmtPhone(d) {
@@ -847,12 +873,43 @@ function applyReplies(replies) {
   return { changed, unmatched };
 }
 
+/* The Sheet is the source of truth for replies, tickets and links:
+   anything deleted there is cleared here on the next sync. (Names and phones live only in this admin.) */
+function mirrorSheet(data) {
+  const replies = data.replies || [], ids = new Set(replies.map((r) => r.id)), toks = new Set(replies.filter((r) => r.token).map((r) => r.token));
+  const linkToks = Array.isArray(data.links) ? new Set(data.links.map((l) => l.token)) : null;
+  let changed = 0;
+  for (const rid in S.links) if (!ids.has(rid)) delete S.links[rid];
+  for (const rid in S.ignored) if (!ids.has(rid)) delete S.ignored[rid];
+  const linked = new Set(Object.values(S.links));
+  const drop = new Set();
+  for (const g of S.guests) {
+    if (linkToks && g.token && !linkToks.has(g.token)) {          // link row deleted in the Sheet
+      if (g.open) { drop.add(g.id); continue; }
+      g.token = null; changed++;
+    }
+    const hasReply = (g.token && toks.has(g.token)) || linked.has(g.id);
+    if (g.reply_stamp && !hasReply) {                              // reply row deleted in the Sheet
+      if (g.open) { drop.add(g.id); continue; }
+      Object.assign(g, { status: "pending", responded_at: null, reply_stamp: null, reply_name: "", ticket: "", message: "", checked_at: "" });
+      changed++;
+    }
+  }
+  if (drop.size) { S.guests = S.guests.filter((g) => !drop.has(g.id)); drop.forEach((id) => selected.delete(id)); changed += drop.size; }
+  if (linkToks) {
+    const before = S.openLinks.length;
+    S.openLinks = S.openLinks.filter((l) => linkToks.has(l.token));
+    changed += before - S.openLinks.length;
+    for (const t in S.deletedTokens) if (!linkToks.has(t) && !toks.has(t)) delete S.deletedTokens[t];
+  }
+  return changed;
+}
 function applyLinkInfo(links) {
   S.linkInfo = {};
   const known = new Set(S.openLinks.map((l) => l.token));
   for (const l of links || []) {
     S.linkInfo[l.token] = { kind: l.kind, usedAt: l.usedAt, usedName: l.usedName };
-    if (l.kind === "open" && !known.has(l.token)) { S.openLinks.push({ token: l.token, created: "" }); known.add(l.token); }
+    if (l.kind === "open" && !known.has(l.token) && !S.deletedTokens[l.token]) { S.openLinks.push({ token: l.token, created: "" }); known.add(l.token); }
   }
 }
 
@@ -869,6 +926,7 @@ async function syncReplies(silent) {
     if (!data.ok) throw new Error(data.error === "bad key" ? "مفتاح الإدارة غير صحيح" : (data.error || "لم يستجب الجدول"));
     applyLinkInfo(data.links);
     const res = applyReplies(data.replies || []);
+    res.changed += mirrorSheet(data);
     S.lastSync = now();
     if (res.changed) S.changesSinceBackup++;
     await persist();
@@ -1087,7 +1145,17 @@ function renderGuests() {
     }
     openGuest(g.id);
   }));
+  setSelAll("#gSelAll", "#gSelTxt", "#gSelWrap", list.map((g) => g.id), selected, VG.length);
+  $("#gSelAll").onchange = (e) => { list.forEach((g) => (e.target.checked ? selected.add(g.id) : selected.delete(g.id))); renderGuests(); };
   renderBulk(list);
+}
+/* "Select all" box: works on what the current filter/search shows */
+function setSelAll(box, txt, wrap, keys, set, total) {
+  const n = keys.filter((k) => set.has(k)).length;
+  $(wrap).hidden = !total;
+  $(box).checked = keys.length > 0 && n === keys.length;
+  $(box).indeterminate = n > 0 && n < keys.length;
+  $(txt).textContent = n ? `تم تحديد ${set.size}` + (n < keys.length ? ` · تحديد الكل (${keys.length})` : "") : `تحديد الكل (${keys.length})`;
 }
 let lastList = [];
 function renderBulk(list) {
@@ -1342,10 +1410,10 @@ function openGuest(id) {
 }
 function phoneHint() {
   const raw = $("#gPhone").value.trim(), h = $("#gPhoneHint");
-  if (!raw) { h.className = "hint"; h.textContent = "اكتب الرقم كما هو: 055… أو ‎+970… أو ‎00212… — يتعرّف على الدولة تلقائيًا."; return; }
+  if (!raw) { h.className = "hint"; h.textContent = "اكتب الرقم كما هو: 055… أو بمفتاح أي دولة مثل ‎+970… أو ‎0044… — يتعرّف على الدولة تلقائيًا."; return; }
   const d = normalizePhone(raw, S.settings.country_code);
   if (d) { h.className = "hint ok-hint"; h.innerHTML = `✓ رقم صحيح · ستصل الرسالة إلى <span class="ltr">${esc(fmtPhone(d))}</span>`; }
-  else { h.className = "hint bad-hint"; h.textContent = "الرقم غير مكتمل أو غير صحيح. للأرقام من خارج السعودية ابدأ بمفتاح الدولة مثل ‎+970."; }
+  else { h.className = "hint bad-hint"; h.textContent = "الرقم غير مكتمل أو غير صحيح. للأرقام من خارج السعودية ابدأ بمفتاح الدولة، مثل ‎+970 أو ‎+44."; }
 }
 $("#gPhone").oninput = phoneHint;
 function applyGuestForm() {
@@ -1380,12 +1448,22 @@ $("#gCopy").onclick = () => copyText($("#gLink").value);
 $("#gUnsend").onclick = async () => { editing.invited_at = null; await save(); $("#guestDlg").close(); toast("اعتُبرت الدعوة غير مرسلة"); };
 /* Deleting removes guests from this list and stops their replies from bringing them back on the next sync.
    (Their reply rows stay in the Google Sheet.) */
-async function deleteGuests(list) {
+/* Removes link rows in the Sheet so those links stop working. Returns false if Code.gs hasn't been updated yet. */
+async function deleteLinksInSheet(tokens) {
+  tokens = tokens.filter(Boolean);
+  if (!tokens.length || !sheetReady()) return true;
+  try { await api({ action: "deleteLinks", tokens }); return true; }
+  catch (err) { if (/مفتاح/.test(err.message) || /الوصول/.test(err.message)) throw err; return false; }
+}
+async function deleteGuests(list, { skipSheet = false } = {}) {
+  let sheetOk = true;
+  if (!skipSheet) sheetOk = await deleteLinksInSheet(list.map((g) => g.token));
   const ids = new Set(list.map((g) => g.id));
   for (const g of list) if (g.token) S.deletedTokens[g.token] = true;
   for (const rid in S.links) if (ids.has(S.links[rid])) { S.ignored[rid] = true; delete S.links[rid]; }
   S.guests = S.guests.filter((g) => !ids.has(g.id));
   ids.forEach((id) => selected.delete(id));
+  if (!sheetOk) setTimeout(() => toast("حُذفت من القائمة، لكن روابطهم ما زالت تعمل: حدّث Code.gs لحذفها من الجدول"), 3600);
   if (S.session) {
     const ses = S.session;
     ses.i = ses.items.slice(0, ses.i).filter((it) => !ids.has(it.id)).length;
@@ -1396,14 +1474,17 @@ async function deleteGuests(list) {
 }
 $("#gDelete").onclick = async () => {
   if (!confirm(`حذف ${editing.full_name}؟`)) return;
-  await deleteGuests([editing]); $("#guestDlg").close(); toast("تم حذف الضيف");
+  try { await deleteGuests([editing]); } catch (err) { return toast(err.message); }
+  $("#guestDlg").close(); toast("تم حذف الضيف");
 };
 $("#bulkDelete").onclick = async () => {
   const list = S.guests.filter((g) => selected.has(g.id));
   if (!list.length) return;
   const n = list.length, label = n === 1 ? `حذف ${list[0].full_name}؟` : `حذف ${n} ضيوف من القائمة؟`;
   if (!confirm(label + "\nلا يمكن التراجع عن الحذف (احفظ نسخة احتياطية أولًا إن احتجت).")) return;
-  await deleteGuests(list); toast(n === 1 ? "تم حذف الضيف" : `تم حذف ${n} ضيوف`);
+  toast("جارٍ الحذف…");
+  try { await deleteGuests(list); } catch (err) { return toast(err.message); }
+  toast(n === 1 ? "تم حذف الضيف" : `تم حذف ${n} ضيوف`);
 };
 $("#addGuest").onclick = $("#addGuest2").onclick = () => openGuest(null);
 
@@ -1435,22 +1516,53 @@ function renderLinks() {
   $("#oTable").hidden = !rows.length;
   $("#oRows").innerHTML = list.map((r) => {
     const g = r.g;
-    return `<tr data-token="${esc(r.token)}" style="border-top:1px solid var(--line);cursor:pointer${r.used ? "" : ";opacity:.8"}">
-      <td style="padding:12px 16px;color:var(--gold);font-weight:700">${r.n}</td>
+    const on = oSelected.has(r.token);
+    return `<tr data-token="${esc(r.token)}" style="border-top:1px solid var(--line);cursor:pointer${on ? ";background:var(--surface2)" : r.used ? "" : ";opacity:.85"}">
+      <td class="ock"><input type="checkbox" data-sel="1" ${on ? "checked" : ""} aria-label="تحديد الرابط ${r.n}"></td>
+      <td style="padding:12px 8px;color:var(--gold);font-weight:700">${r.n}</td>
       <td><span class="sub ltr">…?t=${esc(r.token)}</span> <button type="button" class="btn sm" data-copy="1" style="min-height:32px;padding:0 10px">نسخ</button></td>
       <td>${r.used ? `<span class="pill p-waiting">مستخدم</span>${r.usedAt ? ` <span class="sub">${esc(fmt(r.usedAt))}</span>` : ""}` : '<span class="pill p-notsent">غير مستخدم</span>'}</td>
       <td>${r.name ? `<b dir="auto">${esc(r.name)}</b>` : '<span class="sub">—</span>'}</td>
       <td>${g ? pill(bucket(g)) : '<span class="sub">—</span>'}</td>
       <td>${g && g.ticket && !r.declined ? `<span class="tk">${esc(g.ticket)}</span>${g.checked_at ? `<div class="entered">✓ ${esc(hhmm(g.checked_at))}</div>` : ""}` : '<span class="sub">—</span>'}</td>
     </tr>`;
-  }).join("") || (rows.length ? '<tr><td colspan="6" class="empty">لا توجد روابط مطابقة.</td></tr>' : "");
+  }).join("") || (rows.length ? '<tr><td colspan="7" class="empty">لا توجد روابط مطابقة.</td></tr>' : "");
+  for (const t of [...oSelected]) if (!S.openLinks.some((l) => l.token === t)) oSelected.delete(t);
+  setSelAll("#oSelAll", "#oSelTxt", "#oSelWrap", list.map((r) => r.token), oSelected, rows.length);
+  $("#oSelAll").onchange = (e) => { list.forEach((r) => (e.target.checked ? oSelected.add(r.token) : oSelected.delete(r.token))); renderLinks(); };
+  $("#oBulk").hidden = !oSelected.size;
+  $("#oBulkCount").textContent = oSelected.size === 1 ? "رابط واحد محدد" : oSelected.size === 2 ? "رابطان محددان" : `${oSelected.size} روابط محددة`;
   $("#oRows").querySelectorAll("tr[data-token]").forEach((tr) => (tr.onclick = (e) => {
     const token = tr.dataset.token;
+    if (e.target.closest(".ock")) {
+      const cb = tr.querySelector("[data-sel]");
+      if (e.target !== cb) cb.checked = !cb.checked;
+      cb.checked ? oSelected.add(token) : oSelected.delete(token);
+      renderLinks(); return;
+    }
     if (e.target.closest("[data-copy]")) return copyText(linkFor(token));
     const g = S.guests.find((x) => x.token === token);
     if (g) openGuest(g.id); else copyText(linkFor(token));
   }));
 }
+$("#oBulkClear").onclick = () => { oSelected.clear(); renderLinks(); };
+$("#oBulkCopy").onclick = () => { const t = S.openLinks.filter((l) => oSelected.has(l.token)).map((l) => linkFor(l.token)); copyText(t.join("\n"), `تم نسخ ${t.length} رابط`); };
+$("#oBulkDelete").onclick = async () => {
+  const rows = openRows().filter((r) => oSelected.has(r.token));
+  if (!rows.length) return;
+  const used = rows.filter((r) => r.used).length;
+  if (!confirm(`حذف ${rows.length} ${rows.length === 1 ? "رابط" : "روابط"}؟` + (used ? `\n${used} منها مستخدمة: سيُحذف أصحابها من القائمة وتتوقف روابطهم.` : "\nستتوقف هذه الروابط عن العمل.") + "\nلا يمكن التراجع.")) return;
+  const tokens = rows.map((r) => r.token);
+  toast("جارٍ الحذف…");
+  let sheetOk;
+  try { sheetOk = await deleteLinksInSheet(tokens); } catch (err) { return toast(err.message); }
+  for (const t of tokens) S.deletedTokens[t] = true;
+  S.openLinks = S.openLinks.filter((l) => !oSelected.has(l.token));
+  const owners = S.guests.filter((g) => g.token && tokens.includes(g.token));
+  tokens.forEach((t) => oSelected.delete(t));
+  if (owners.length) await deleteGuests(owners, { skipSheet: true }); else await save();
+  toast(sheetOk ? `تم حذف ${tokens.length} رابط` : "حُذفت من القائمة، لكنها ما زالت تعمل: حدّث Code.gs لحذفها من الجدول");
+};
 $("#oSearch").oninput = (e) => { oQuery = e.target.value.trim(); renderLinks(); };
 function downloadLinks(rows, file) {
   const aoa = [["#", "الرابط", "الحالة", "اسم المسجّل", "تأكيد الحضور", "التذكرة", "وقت الدخول"]].concat(rows.map((r) => [
@@ -1577,7 +1689,7 @@ function sampleExcel() {
     ["١. اكتب كل ضيف في سطر في ورقة «الضيوف». احذف الأمثلة قبل الاستيراد."],
     ["٢. اللقب اختياري، مثل: السيد، السيدة، الآنسة، المهندس، المهندسة، الدكتور، الدكتورة، الأستاذ، الأستاذة، الشيخ."],
     ["٣. رقم الجوال: الأرقام السعودية يمكن كتابتها محليًا مثل 0551234567."],
-    ["   لغير السعودية اكتب مفتاح الدولة: ‎+970 فلسطين، ‎+972، ‎+962 الأردن، ‎+20 مصر، ‎+212 المغرب، ‎+973 البحرين، ‎+974 قطر، ‎+971 الإمارات، ‎+965 الكويت، ‎+34 إسبانيا."],
+    ["   لغير السعودية اكتب مفتاح الدولة قبل الرقم، وتُقبل جميع الدول. أمثلة: ‎+970 فلسطين، ‎+962 الأردن، ‎+20 مصر، ‎+212 المغرب، ‎+971 الإمارات، ‎+44 بريطانيا، ‎+1 أمريكا وكندا."],
     ["٤. الملاحظة اختيارية ولا تظهر للضيف."],
     ["٥. احفظ الملف ثم اختر «استيراد Excel» في صفحة الضيوف. إعادة الاستيراد تحدّث الضيوف ولا تكررهم."],
   ]);
